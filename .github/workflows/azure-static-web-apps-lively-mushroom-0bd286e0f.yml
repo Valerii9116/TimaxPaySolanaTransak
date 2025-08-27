@@ -26,9 +26,8 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "/" 
-          api_location: "api" # This ensures your API folder is found
+          api_location: "api"
           output_location: "build"
-          app_build_command: "npm install --legacy-peer-deps && npm run build"
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
