@@ -10,7 +10,7 @@ import { injected, walletConnect } from 'wagmi/connectors';
 
 // You need a WalletConnect Project ID to enable mobile wallet connections.
 // Get yours at https://cloud.walletconnect.com
-const projectId = 'YOUR_WALLETCONNECT_PROJECT_ID';
+const projectId = 'dc14d146c0227704322ac9a46aaed7cd';
 
 const config = createConfig({
   chains: [polygon, mainnet, arbitrum, linea, avalanche],

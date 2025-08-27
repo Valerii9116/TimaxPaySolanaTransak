@@ -19,7 +19,10 @@ function App() {
     const fetchConfig = async () => {
       try {
         const response = await fetch('/api/getConfig');
-        if (!response.ok) throw new Error('Failed to fetch server configuration.');
+        if (!response.ok) {
+            const errorResult = await response.json();
+            throw new Error(errorResult.error || 'Failed to fetch server configuration.');
+        }
         const serverConfig = await response.json();
 
         if (!serverConfig.walletConnectProjectId || !serverConfig.transakApiKey) {
@@ -52,6 +55,7 @@ function App() {
 
   const isWrongNetwork = isWalletConnected && chain !== 137;
 
+  // Render a loading state until the configuration is fetched
   if (!config) {
     return <div className="loading-container">{status || 'Loading Configuration...'}</div>;
   }
