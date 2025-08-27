@@ -18,16 +18,29 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Build And Deploy
+
+      # New steps to build the application manually
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install Dependencies and Build
+        run: |
+          npm install --legacy-peer-deps
+          npm run build
+
+      # This step now deploys the pre-built application
+      - name: Deploy to Azure
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LIVELY_MUSHROOM_0BD286E0F }} # Make sure this matches your secret name
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/" 
+          # The app_location is now the 'build' folder where the finished app lives
+          app_location: "build" 
           api_location: "api"
-          output_location: "build"
+          output_location: "" # Not needed when app_location is the build output
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
