@@ -4,7 +4,7 @@ import './index.css';
 import App from './App';
 
 import { WagmiProvider, createConfig, http } from 'wagmi';
-import { polygon } from 'wagmi/chains';
+import { polygon, mainnet, arbitrum, linea, avalanche } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { injected, walletConnect } from 'wagmi/connectors';
 
@@ -13,13 +13,17 @@ import { injected, walletConnect } from 'wagmi/connectors';
 const projectId = 'YOUR_WALLETCONNECT_PROJECT_ID';
 
 const config = createConfig({
-  chains: [polygon],
+  chains: [polygon, mainnet, arbitrum, linea, avalanche],
   connectors: [
     injected(),
     walletConnect({ projectId })
   ],
-  transports: {
+transports: {
     [polygon.id]: http(),
+    [mainnet.id]: http(),
+    [arbitrum.id]: http(),
+    [linea.id]: http(),
+    [avalanche.id]: http(),
   },
 });
 

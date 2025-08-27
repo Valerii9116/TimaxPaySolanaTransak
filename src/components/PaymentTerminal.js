@@ -34,7 +34,6 @@ function PaymentTerminal({ apiKey, merchantAddress, setStatus }) {
 
     transak.init();
 
-    // **CORRECTION**: Event listeners must be attached to the main Transak class.
     Transak.on(Transak.EVENTS.TRANSAK_WIDGET_CLOSE, () => {
       setStatus('Widget closed.');
       transak.close();
