@@ -1,22 +1,21 @@
 module.exports = async function (context, req) {
-    context.log('getConfig function processed a request.');
-  
-    const apiKey = process.env.TransakApiKey;
-  
-    if (apiKey && apiKey.length > 5) {
-      context.log(`Successfully loaded TransakApiKey, starting with: ${apiKey.substring(0, 5)}`);
-      context.res = {
-        status: 200,
-        body: { transakApiKey: apiKey },
-        headers: { 'Content-Type': 'application/json' }
-      };
-    } else {
-      context.log.error("CRITICAL ERROR: TransakApiKey is not set in application settings.");
-      context.res = {
-        status: 500,
-        body: { error: "Payment provider API key is not configured on the server." },
-        headers: { 'Content-Type': 'application/json' }
-      };
-    }
+  const config = {
+    transakApiKey: process.env.TRANSAK_API_KEY,
+    walletConnectProjectId: process.env.WALLETCONNECT_PROJECT_ID,
   };
-  
+
+  if (config.transakApiKey && config.walletConnectProjectId) {
+    context.res = {
+      status: 200,
+      body: config,
+      headers: { 'Content-Type': 'application/json' }
+    };
+  } else {
+    context.log.error("API keys are not set in application settings.");
+    context.res = {
+      status: 500,
+      body: { error: "Server configuration is incomplete." },
+      headers: { 'Content-Type': 'application/json' }
+    };
+  }
+};
