@@ -10,7 +10,7 @@ function WalletConnector({ onConnect }) {
 
   const { data: balanceData, isLoading: isBalanceLoading } = useBalance({
     address: address,
-    token: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359', // USDC on Polygon
+    token: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
     chainId: POLYGON_CHAIN_ID,
     enabled: isConnected && chain?.id === POLYGON_CHAIN_ID,
   });

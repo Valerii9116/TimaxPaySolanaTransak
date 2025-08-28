@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Transak } from '@transak/transak-sdk';
 
-function PaymentTerminal({ apiKey, merchantAddress, setStatus }) {
+function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus }) {
   const [fiatCurrency, setFiatCurrency] = useState('GBP');
   const [amount, setAmount] = useState('20.00');
   const [terminalMode, setTerminalMode] = useState('PAYMENT');
@@ -17,7 +17,7 @@ function PaymentTerminal({ apiKey, merchantAddress, setStatus }) {
     
     const transak = new Transak({
       apiKey: apiKey,
-      environment: 'PRODUCTION', // Change to PRODUCTION for live
+      environment: environment,
       productsAvailed: isBuyFlow ? 'BUY' : 'SELL',
       fiatCurrency: fiatCurrency,
       cryptoCurrencyCode: 'USDC',
@@ -38,7 +38,7 @@ function PaymentTerminal({ apiKey, merchantAddress, setStatus }) {
       setStatus('Widget closed.');
       transak.close();
     });
-    Transak.on(Transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (orderData) => {
+    Transak.on(Transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, () => {
       setStatus(`Success! ${isBuyFlow ? 'Payment received.' : 'Withdrawal complete.'}`);
       setTimeout(() => transak.close(), 5000);
     });
@@ -56,13 +56,7 @@ function PaymentTerminal({ apiKey, merchantAddress, setStatus }) {
       <div className="terminal-body">
         <h3>{terminalMode === 'PAYMENT' ? 'Enter Amount to Charge' : 'Enter Amount to Withdraw'}</h3>
         <div className="amount-input-container">
-          <input 
-            type="number" 
-            className="amount-input" 
-            value={amount}
-            min="20"
-            onChange={(e) => setAmount(e.target.value)}
-          />
+          <input type="number" className="amount-input" value={amount} min="20" onChange={(e) => setAmount(e.target.value)} />
           <select className="currency-select" value={fiatCurrency} onChange={(e) => setFiatCurrency(e.target.value)}>
             <option value="GBP">GBP</option>
             <option value="EUR">EUR</option>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import WalletConnector from './components/WalletConnector';
 import PaymentTerminal from './components/PaymentTerminal';
-import TransactionHistory from './components/TransactionHistory'; // Import the new component
+import TransactionHistory from './components/TransactionHistory';
 import './App.css';
 
 import { WagmiProvider, createConfig, http } from 'wagmi';
@@ -23,7 +23,7 @@ function App() {
         if (!response.ok) throw new Error('Failed to fetch server configuration.');
         const serverConfig = await response.json();
 
-        if (!serverConfig.walletConnectProjectId || !serverConfig.transakApiKey) {
+        if (!serverConfig.walletConnectProjectId || !serverConfig.transakApiKey || !serverConfig.transakEnvironment) {
           throw new Error('Configuration from server is missing required keys.');
         }
 
@@ -36,7 +36,12 @@ function App() {
           transports: { [polygon.id]: http() },
         });
 
-        setConfig({ wagmi: wagmiConfig, transak: serverConfig.transakApiKey });
+        setConfig({ 
+          wagmi: wagmiConfig, 
+          transakApiKey: serverConfig.transakApiKey,
+          transakEnvironment: serverConfig.transakEnvironment
+        });
+
       } catch (error) {
         console.error("Config fetch error:", error);
         setStatus(`Error: ${error.message}`);
@@ -76,7 +81,8 @@ function App() {
               {isWalletConnected && !isWrongNetwork && (
                 <>
                   <PaymentTerminal 
-                    apiKey={config.transak} 
+                    apiKey={config.transakApiKey}
+                    environment={config.transakEnvironment}
                     merchantAddress={merchantAddress} 
                     setStatus={setStatus} 
                   />
