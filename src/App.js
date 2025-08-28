@@ -70,7 +70,7 @@ function App() {
         <div className="App">
           <div className="app-container">
             <header className="App-header">
-              <h1>TimaxPay Merchant Terminal</h1>
+              <h1>TimaxPay Merchant USDC Terminal</h1>
               <p className="subtitle">Accept fiat, receive crypto.</p>
             </header>
             <main className="App-main">
