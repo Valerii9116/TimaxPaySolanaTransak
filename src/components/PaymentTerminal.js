@@ -17,7 +17,7 @@ function PaymentTerminal({ apiKey, merchantAddress, setStatus }) {
     
     const transak = new Transak({
       apiKey: apiKey,
-      environment: 'STAGING', // Change to PRODUCTION for live
+      environment: 'PRODUCTION', // Change to PRODUCTION for live
       productsAvailed: isBuyFlow ? 'BUY' : 'SELL',
       fiatCurrency: fiatCurrency,
       cryptoCurrencyCode: 'USDC',
