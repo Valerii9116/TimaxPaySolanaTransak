@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import WalletConnector from './components/WalletConnector';
 import PaymentTerminal from './components/PaymentTerminal';
+import TransactionHistory from './components/TransactionHistory'; // Import the new component
 import './App.css';
 
 import { WagmiProvider, createConfig, http } from 'wagmi';
@@ -19,10 +20,7 @@ function App() {
     const fetchConfig = async () => {
       try {
         const response = await fetch('/api/getConfig');
-        if (!response.ok) {
-            const errorResult = await response.json();
-            throw new Error(errorResult.error || 'Failed to fetch server configuration.');
-        }
+        if (!response.ok) throw new Error('Failed to fetch server configuration.');
         const serverConfig = await response.json();
 
         if (!serverConfig.walletConnectProjectId || !serverConfig.transakApiKey) {
@@ -55,7 +53,6 @@ function App() {
 
   const isWrongNetwork = isWalletConnected && chain !== 137;
 
-  // Render a loading state until the configuration is fetched
   if (!config) {
     return <div className="loading-container">{status || 'Loading Configuration...'}</div>;
   }
@@ -77,11 +74,14 @@ function App() {
               </div>
               {isWrongNetwork && <p className="error-message">Please switch wallet to Polygon to continue.</p>}
               {isWalletConnected && !isWrongNetwork && (
-                <PaymentTerminal 
-                  apiKey={config.transak} 
-                  merchantAddress={merchantAddress} 
-                  setStatus={setStatus} 
-                />
+                <>
+                  <PaymentTerminal 
+                    apiKey={config.transak} 
+                    merchantAddress={merchantAddress} 
+                    setStatus={setStatus} 
+                  />
+                  <TransactionHistory merchantAddress={merchantAddress} />
+                </>
               )}
               {status && <p className="status-message main-status">{status}</p>}
             </main>
