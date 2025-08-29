@@ -33,7 +33,7 @@ module.exports = async function (context, req) {
 
     const accessToken = await getTransakAccessToken(apiKey, apiSecret, transakApiUrl);
     
-    // **CORRECTION**: Added '&filter[productsAvailed]=BUY,SELL' to fetch both transaction types.
+    // This line correctly fetches both BUY and SELL transactions
     const ordersUrl = `${transakApiUrl}/partners/api/v2/orders?filter[partnerCustomerId]=${encodeURIComponent(partnerCustomerId)}&filter[productsAvailed]=BUY,SELL`;
 
     const ordersResponse = await axios.get(ordersUrl, {
