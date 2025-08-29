@@ -1,62 +1,71 @@
 import React, { useEffect } from 'react';
-import { useAccount, useConnect, useDisconnect, useBalance, useSwitchChain } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain, useBalance } from 'wagmi';
+import { injected, walletConnect } from 'wagmi/connectors';
+import { formatUnits } from 'viem';
 
-const POLYGON_CHAIN_ID = 137;
+const polygonChainId = 137;
+const USDC_POLYGON_ADDRESS = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359';
 
 function WalletConnector({ onConnect }) {
-  const { address, isConnected, chain } = useAccount();
-  const { connectors, connect } = useConnect();
+  const { address, isConnected, chainId } = useAccount();
+  const { connect } = useConnect();
   const { disconnect } = useDisconnect();
+  const currentChainId = useChainId();
   const { switchChain } = useSwitchChain();
 
-  const { data: balanceData, isLoading: isBalanceLoading } = useBalance({
+  const { data: balanceData, isLoading: isBalanceLoading, isError: isBalanceError } = useBalance({
     address: address,
-    token: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359', // USDC on Polygon
-    chainId: POLYGON_CHAIN_ID,
-    enabled: isConnected && chain?.id === POLYGON_CHAIN_ID,
+    chainId: polygonChainId,
+    token: USDC_POLYGON_ADDRESS,
+    enabled: isConnected && currentChainId === polygonChainId,
   });
 
   useEffect(() => {
-    if (isConnected && address) {
-      onConnect(address, chain?.id);
-    } else {
-      onConnect(null, null);
-    }
-  }, [isConnected, address, chain, onConnect]);
+    onConnect(address, chainId);
+  }, [address, chainId, onConnect]);
 
-  const isWrongNetwork = isConnected && chain?.id !== POLYGON_CHAIN_ID;
+  const isWrongNetwork = isConnected && currentChainId !== polygonChainId;
+
+  const renderBalance = () => {
+    if (isWrongNetwork) return <span className="balance-info error">Wrong Network</span>;
+    if (isBalanceLoading) return <span className="balance-info">Loading...</span>;
+    if (isBalanceError || !balanceData) return <span className="balance-info error">Error</span>;
+    return (
+      <span className="balance-info">
+        Balance: {parseFloat(formatUnits(balanceData.value, balanceData.decimals)).toFixed(2)} USDC (Polygon)
+      </span>
+    );
+  };
 
   if (isConnected) {
     return (
-      <div className="wallet-connector">
-        <div className="wallet-info">
-          <div>
-            <p className="wallet-address-label">Merchant Wallet:</p>
-            <p className="wallet-address"><strong>{`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}</strong></p>
-          </div>
-          <div className="balance-display">
-            <p className="balance-label">USDC Balance (Polygon)</p>
-            <p className="balance-value">{isWrongNetwork ? 'N/A' : (isBalanceLoading ? '...' : parseFloat(balanceData?.formatted || '0').toFixed(2))}</p>
-          </div>
-        </div>
-        <div className="connection-controls">
+      <div className="wallet-info">
+        <p>
+          Connected: <strong>{`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}</strong>
+        </p>
+        <div className="balance-container">
+          {renderBalance()}
           {isWrongNetwork && (
-            <button onClick={() => switchChain({ chainId: POLYGON_CHAIN_ID })} className="switch-network-button">
+            <button className="switch-button" onClick={() => switchChain({ chainId: polygonChainId })}>
               Switch to Polygon
             </button>
           )}
-          <button onClick={() => disconnect()} className="disconnect-button">Disconnect</button>
         </div>
+        <button onClick={() => disconnect()} className="disconnect-button">Disconnect</button>
       </div>
     );
   }
 
   return (
-    <div className="connection-controls">
-      {connectors.map((connector) => (
-        <button key={connector.uid} onClick={() => connect({ connector })} className="connect-button">{`Connect ${connector.name}`}</button>
-      ))}
+    <div className="connect-container">
+      <button onClick={() => connect({ connector: injected() })} className="connect-button">
+        Connect (Browser)
+      </button>
+      <button onClick={() => connect({ connector: walletConnect() })} className="connect-button">
+        Connect (Mobile)
+      </button>
     </div>
   );
 }
+
 export default WalletConnector;

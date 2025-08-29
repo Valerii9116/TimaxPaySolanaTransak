@@ -38,7 +38,7 @@ function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus }) {
       setStatus('Widget closed.');
       transak.close();
     });
-    Transak.on(Transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, () => {
+    Transak.on(Transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (orderData) => {
       setStatus(`Success! ${isBuyFlow ? 'Payment received.' : 'Withdrawal complete.'}`);
       setTimeout(() => transak.close(), 5000);
     });
@@ -56,7 +56,13 @@ function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus }) {
       <div className="terminal-body">
         <h3>{terminalMode === 'PAYMENT' ? 'Enter Amount to Charge' : 'Enter Amount to Withdraw'}</h3>
         <div className="amount-input-container">
-          <input type="number" className="amount-input" value={amount} min="20" onChange={(e) => setAmount(e.target.value)} />
+          <input 
+            type="number" 
+            className="amount-input" 
+            value={amount}
+            min="20"
+            onChange={(e) => setAmount(e.target.value)}
+          />
           <select className="currency-select" value={fiatCurrency} onChange={(e) => setFiatCurrency(e.target.value)}>
             <option value="GBP">GBP</option>
             <option value="EUR">EUR</option>

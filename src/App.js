@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+
 import WalletConnector from './components/WalletConnector';
 import PaymentTerminal from './components/PaymentTerminal';
-import TransactionHistory from './components/TransactionHistory';
 import './App.css';
 
 import { WagmiProvider, createConfig, http } from 'wagmi';
@@ -9,51 +8,28 @@ import { polygon } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { injected, walletConnect } from 'wagmi/connectors';
 
+// Read keys directly from the build environment
+const walletConnectProjectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID;
+const transakApiKey = process.env.REACT_APP_TRANSAK_API_KEY;
+
+if (!walletConnectProjectId || !transakApiKey) {
+  console.error("CRITICAL ERROR: Build-time environment variables are missing.");
+}
+
+const wagmiConfig = createConfig({
+  chains: [polygon],
+  connectors: [
+    injected(),
+    walletConnect({ projectId: walletConnectProjectId })
+  ],
+  transports: { [polygon.id]: http() },
+});
+
 function App() {
-  const [config, setConfig] = useState(null);
   const [status, setStatus] = useState('');
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [merchantAddress, setMerchantAddress] = useState(null);
   const [chain, setChain] = useState(null);
-
-  // This is the URL for your new, separate backend API.
-  // It will be injected during the build process on Azure.
-  const apiUrl = process.env.REACT_APP_API_URL || '';
-
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        // Use the full API URL
-        const response = await fetch(`${apiUrl}/api/getConfig`);
-        if (!response.ok) throw new Error('Failed to fetch server configuration.');
-        const serverConfig = await response.json();
-
-        if (!serverConfig.walletConnectProjectId || !serverConfig.transakApiKey || !serverConfig.transakEnvironment) {
-          throw new Error('Configuration from server is missing required keys.');
-        }
-
-        const wagmiConfig = createConfig({
-          chains: [polygon],
-          connectors: [
-            injected(),
-            walletConnect({ projectId: serverConfig.walletConnectProjectId })
-          ],
-          transports: { [polygon.id]: http() },
-        });
-
-        setConfig({ 
-          wagmi: wagmiConfig, 
-          transakApiKey: serverConfig.transakApiKey,
-          transakEnvironment: serverConfig.transakEnvironment
-        });
-
-      } catch (error) {
-        console.error("Config fetch error:", error);
-        setStatus(`Error: ${error.message}`);
-      }
-    };
-    fetchConfig();
-  }, [apiUrl]);
 
   const handleWalletConnect = (address, chainId) => {
     setMerchantAddress(address);
@@ -62,15 +38,10 @@ function App() {
   };
 
   const isWrongNetwork = isWalletConnected && chain !== 137;
-
-  if (!config) {
-    return <div className="loading-container">{status || 'Loading Configuration...'}</div>;
-  }
-
   const queryClient = new QueryClient();
 
   return (
-    <WagmiProvider config={config.wagmi}>
+    <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <div className="App">
           <div className="app-container">
@@ -84,18 +55,12 @@ function App() {
               </div>
               
               {isWalletConnected && !isWrongNetwork && (
-                <>
-                  <PaymentTerminal 
-                    apiKey={config.transakApiKey}
-                    environment={config.transakEnvironment}
-                    merchantAddress={merchantAddress} 
-                    setStatus={setStatus} 
-                  />
-                  <TransactionHistory 
-                    merchantAddress={merchantAddress} 
-                    apiUrl={apiUrl} 
-                  />
-                </>
+                <PaymentTerminal 
+                  apiKey={transakApiKey}
+                  environment={'STAGING'} // Hardcoded for staging tests
+                  merchantAddress={merchantAddress} 
+                  setStatus={setStatus} 
+                />
               )}
 
               {status && <p className="status-message main-status">{status}</p>}
@@ -106,4 +71,6 @@ function App() {
     </WagmiProvider>
   );
 }
+
 export default App;
+
