@@ -16,10 +16,15 @@ function App() {
   const [merchantAddress, setMerchantAddress] = useState(null);
   const [chain, setChain] = useState(null);
 
+  // This is the URL for your new, separate backend API.
+  // It will be injected during the build process on Azure.
+  const apiUrl = process.env.REACT_APP_API_URL || '';
+
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const response = await fetch('/api/getConfig');
+        // Use the full API URL
+        const response = await fetch(`${apiUrl}/api/getConfig`);
         if (!response.ok) throw new Error('Failed to fetch server configuration.');
         const serverConfig = await response.json();
 
@@ -48,7 +53,7 @@ function App() {
       }
     };
     fetchConfig();
-  }, []);
+  }, [apiUrl]);
 
   const handleWalletConnect = (address, chainId) => {
     setMerchantAddress(address);
@@ -77,7 +82,7 @@ function App() {
               <div className="step-card">
                 <WalletConnector onConnect={handleWalletConnect} />
               </div>
-              {isWrongNetwork && <p className="error-message">Please switch wallet to Polygon to continue.</p>}
+              
               {isWalletConnected && !isWrongNetwork && (
                 <>
                   <PaymentTerminal 
@@ -86,9 +91,13 @@ function App() {
                     merchantAddress={merchantAddress} 
                     setStatus={setStatus} 
                   />
-                  <TransactionHistory merchantAddress={merchantAddress} />
+                  <TransactionHistory 
+                    merchantAddress={merchantAddress} 
+                    apiUrl={apiUrl} 
+                  />
                 </>
               )}
+
               {status && <p className="status-message main-status">{status}</p>}
             </main>
           </div>

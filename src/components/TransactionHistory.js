@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function TransactionHistory({ merchantAddress }) {
+function TransactionHistory({ merchantAddress, apiUrl }) {
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -9,7 +9,8 @@ function TransactionHistory({ merchantAddress }) {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/getTransactions', {
+      // Use the full API URL
+      const response = await fetch(`${apiUrl}/api/getTransactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ partnerCustomerId: merchantAddress }),
