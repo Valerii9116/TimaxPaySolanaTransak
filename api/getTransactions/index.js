@@ -33,8 +33,9 @@ module.exports = async function (context, req) {
 
     const accessToken = await getTransakAccessToken(apiKey, apiSecret, transakApiUrl);
     
-    // This line correctly fetches both BUY and SELL transactions
-    const ordersUrl = `${transakApiUrl}/partners/api/v2/orders?filter[partnerCustomerId]=${encodeURIComponent(partnerCustomerId)}&filter[productsAvailed]=BUY,SELL`;
+    // **CORRECTION**: This now correctly formats the filter for both BUY and SELL transactions.
+    const products = encodeURIComponent(JSON.stringify(["BUY", "SELL"]));
+    const ordersUrl = `${transakApiUrl}/partners/api/v2/orders?filter[partnerCustomerId]=${encodeURIComponent(partnerCustomerId)}&filter[productsAvailed]=${products}`;
 
     const ordersResponse = await axios.get(ordersUrl, {
       headers: { 'access-token': accessToken }
