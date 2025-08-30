@@ -15,6 +15,8 @@ function App() {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [merchantAddress, setMerchantAddress] = useState(null);
   const [chain, setChain] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [currentView, setCurrentView] = useState('terminal'); // 'terminal' or 'history'
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -54,6 +56,14 @@ function App() {
     setMerchantAddress(address);
     setIsWalletConnected(!!address);
     setChain(chainId);
+    if (!address) {
+      setCurrentView('terminal'); // Reset to terminal view on disconnect
+    }
+  };
+
+  const handleNewTransaction = (transactionData) => {
+    setTransactions(prevTransactions => [transactionData, ...prevTransactions]);
+    setCurrentView('history'); // Switch to history view after a successful transaction
   };
 
   const isWrongNetwork = isWalletConnected && chain !== 137;
@@ -82,13 +92,34 @@ function App() {
 
               {isWalletConnected && !isWrongNetwork && (
                 <>
-                  <PaymentTerminal 
-                    apiKey={config.transakApiKey}
-                    environment={config.transakEnvironment}
-                    merchantAddress={merchantAddress} 
-                    setStatus={setStatus} 
-                  />
-                  <TransactionHistory merchantAddress={merchantAddress} />
+                  <nav className="main-nav">
+                    <button 
+                      onClick={() => setCurrentView('terminal')} 
+                      className={currentView === 'terminal' ? 'active' : ''}
+                    >
+                      Terminal
+                    </button>
+                    <button 
+                      onClick={() => setCurrentView('history')} 
+                      className={currentView === 'history' ? 'active' : ''}
+                    >
+                      History
+                    </button>
+                  </nav>
+
+                  {currentView === 'terminal' && (
+                    <PaymentTerminal 
+                      apiKey={config.transakApiKey}
+                      environment={config.transakEnvironment}
+                      merchantAddress={merchantAddress} 
+                      setStatus={setStatus} 
+                      onNewTransaction={handleNewTransaction}
+                    />
+                  )}
+                  
+                  {currentView === 'history' && (
+                    <TransactionHistory transactions={transactions} />
+                  )}
                 </>
               )}
 
@@ -101,3 +132,4 @@ function App() {
   );
 }
 export default App;
+

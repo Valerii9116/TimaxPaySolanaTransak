@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Transak from '@transak/transak-sdk';
 
-function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus }) {
+function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus, onNewTransaction }) {
   const [fiatCurrency, setFiatCurrency] = useState('GBP');
   const [amount, setAmount] = useState('20.00');
   const [terminalMode, setTerminalMode] = useState('PAYMENT');
@@ -19,7 +19,7 @@ function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus }) {
       apiKey: apiKey,
       environment: environment,
       productsAvailed: isBuyFlow ? 'BUY' : 'SELL',
-      fiatCurrency: fiatCurrency,
+      fiatCurrency: fiatCurrency, // Use selected fiat currency for both buy and sell
       cryptoCurrencyCode: 'USDC',
       network: 'polygon',
       walletAddress: merchantAddress,
@@ -32,20 +32,30 @@ function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus }) {
       widgetWidth: '100%',
     });
 
-    transak.init();
+    // Define event handlers
+    const handleOrderSuccessful = (orderData) => {
+      setStatus('Success! The transaction was completed.');
+      if (onNewTransaction && orderData.status) {
+        const transactionType = isBuyFlow ? 'Payment' : 'Withdrawal';
+        onNewTransaction({ ...orderData.status, type: transactionType });
+      }
+      setTimeout(() => transak.close(), 3000);
+    };
 
-    transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, () => {
-      setStatus('Widget closed.');
-    });
-    
-    transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (orderData) => {
-      setStatus(`Success! ${isBuyFlow ? 'Payment received.' : 'Withdrawal complete.'}`);
-      setTimeout(() => transak.close(), 5000);
-    });
-
-    transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, () => {
+    const handleOrderFailed = () => {
       setStatus('Transaction failed.');
-    });
+    };
+
+    const handleWidgetClose = () => {
+      setStatus('Widget closed by user.');
+    };
+
+    // Attach listeners to the instance, not the global object
+    transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, handleOrderSuccessful);
+    transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, handleOrderFailed);
+    transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, handleWidgetClose);
+
+    transak.init();
   };
 
   return (
@@ -71,10 +81,11 @@ function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus }) {
           </select>
         </div>
         <button onClick={launchTransak} className="launch-button">
-          {terminalMode === 'PAYMENT' ? `Charge ${amount} ${fiatCurrency}` : `Withdraw ${amount} USDC`}
+          {terminalMode === 'PAYMENT' ? `Charge ${amount} ${fiatCurrency}` : `Withdraw ${amount} USDC to ${fiatCurrency}`}
         </button>
       </div>
     </div>
   );
 }
 export default PaymentTerminal;
+

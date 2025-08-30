@@ -110,4 +110,3 @@ function WalletConnector({ onConnect }) {
 
 export default WalletConnector;
 
-

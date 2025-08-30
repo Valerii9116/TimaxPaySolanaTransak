@@ -47,6 +47,38 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
+/* Main Navigation Tabs */
+.main-nav {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.main-nav button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  background-color: #444a57;
+  color: #aaa;
+  border: 1px solid #444a57;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.main-nav button:hover {
+  background-color: #555c68;
+  color: #f0f0f0;
+}
+
+.main-nav button.active {
+  background-color: #61dafb;
+  color: #1a1a1a;
+  border-color: #61dafb;
+}
+
+
 /* Loading and Status Messages */
 .loading-container, .status-message {
   padding: 20px;
@@ -246,17 +278,74 @@ body {
 .history-container {
   text-align: left;
 }
-.history-list-placeholder {
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
   margin-top: 15px;
 }
-.history-item-placeholder {
-  background-color: #444a57;
-  height: 20px;
-  border-radius: 5px;
-  margin-bottom: 10px;
-  opacity: 0.5;
+
+.history-list-placeholder p {
+  color: #aaa;
+  font-style: italic;
 }
-.history-item-placeholder:last-child {
-  width: 70%;
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background-color: #282c34;
+  border-radius: 8px;
+  border: 1px solid #444a57;
+}
+
+.history-item-details {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.history-item-title {
+  font-weight: 500;
+  color: #f0f0f0;
+}
+
+.history-item-id {
+  font-size: 0.8rem;
+  color: #aaa;
+  font-family: monospace;
+}
+
+.history-item-amount {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.history-item-amount span {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.amount-positive {
+  color: #4caf50;
+}
+
+.amount-negative {
+  color: #ff6b6b;
+}
+
+.history-item-explorer {
+  font-size: 0.75rem;
+  color: #61dafb;
+  text-decoration: none;
+  margin-top: 4px;
+}
+
+.history-item-explorer:hover {
+  text-decoration: underline;
 }
 
