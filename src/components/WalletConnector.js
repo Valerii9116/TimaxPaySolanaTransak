@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain, useBalance } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useSwitchChain, useBalance } from 'wagmi';
 import { formatUnits } from 'viem';
 
 const polygonChainId = 137;
@@ -109,3 +109,5 @@ function WalletConnector({ onConnect }) {
 }
 
 export default WalletConnector;
+
+
