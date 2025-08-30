@@ -45,12 +45,15 @@ function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus, onNe
     const handleOrderFailed = () => {
       setStatus('Transaction failed.');
     };
-
+    
+    // This handler will be called when the widget is closed
     const handleWidgetClose = () => {
-      setStatus('Widget closed by user.');
+      setStatus('Widget closed.');
+      // The transak instance is short-lived, so manual listener removal is not required here.
+      // The duplicate transaction issue is handled in App.js.
     };
 
-    // Attach listeners to the instance, not the global object
+    // Attach listeners to the instance
     transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, handleOrderSuccessful);
     transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, handleOrderFailed);
     transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, handleWidgetClose);

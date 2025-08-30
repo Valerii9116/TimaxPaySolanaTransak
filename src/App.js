@@ -62,8 +62,16 @@ function App() {
   };
 
   const handleNewTransaction = (transactionData) => {
-    setTransactions(prevTransactions => [transactionData, ...prevTransactions]);
-    setCurrentView('history'); // Switch to history view after a successful transaction
+    setTransactions(prevTransactions => {
+      // Check if a transaction with the same ID already exists to prevent duplicates
+      const isDuplicate = prevTransactions.some(tx => tx.id === transactionData.id);
+      if (isDuplicate) {
+        return prevTransactions; // If it's a duplicate, return the existing state
+      }
+      // Otherwise, add the new transaction to the top of the list
+      return [transactionData, ...prevTransactions];
+    });
+    setCurrentView('history');
   };
 
   const isWrongNetwork = isWalletConnected && chain !== 137;
@@ -132,4 +140,3 @@ function App() {
   );
 }
 export default App;
-
