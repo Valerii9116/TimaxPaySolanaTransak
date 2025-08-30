@@ -5,9 +5,9 @@ import TransactionHistory from './components/TransactionHistory';
 import './App.css';
 
 import { WagmiProvider, createConfig, http } from 'wagmi';
-import { polygon, mainnet, arbitrum, linea, avalanche } from 'wagmi/chains';
+import { polygon } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { walletConnect } from 'wagmi/connectors';
+import { injected, walletConnect } from 'wagmi/connectors';
 
 function App() {
   const [config, setConfig] = useState(null);
@@ -17,39 +17,37 @@ function App() {
   const [chain, setChain] = useState(null);
 
   useEffect(() => {
-    // This is a placeholder for fetching secrets in a real app
-    const serverConfig = {
-      walletConnectProjectId: process.env.REACT_APP_WALLETCONNECT_PROJECT_ID,
-      transakApiKey: process.env.REACT_APP_TRANSAK_API_KEY,
-      transakEnvironment: process.env.REACT_APP_TRANSAK_ENVIRONMENT || 'STAGING'
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/getConfig');
+        if (!response.ok) throw new Error('Failed to fetch server configuration.');
+        const serverConfig = await response.json();
+
+        if (!serverConfig.walletConnectProjectId || !serverConfig.transakApiKey || !serverConfig.transakEnvironment) {
+          throw new Error('Configuration from server is missing required keys.');
+        }
+
+        const wagmiConfig = createConfig({
+          chains: [polygon],
+          connectors: [
+            injected(),
+            walletConnect({ projectId: serverConfig.walletConnectProjectId })
+          ],
+          transports: { [polygon.id]: http() },
+        });
+
+        setConfig({ 
+          wagmi: wagmiConfig, 
+          transakApiKey: serverConfig.transakApiKey,
+          transakEnvironment: serverConfig.transakEnvironment
+        });
+
+      } catch (error) {
+        console.error("Config fetch error:", error);
+        setStatus(`Error: ${error.message}`);
+      }
     };
-
-    if (!serverConfig.walletConnectProjectId || !serverConfig.transakApiKey) {
-      const errorMsg = "Configuration keys are missing.";
-      setStatus(`Error: ${errorMsg}`);
-      console.error(errorMsg);
-      return;
-    }
-
-    const wagmiConfig = createConfig({
-      chains: [polygon, mainnet, arbitrum, linea, avalanche],
-      connectors: [
-        walletConnect({ projectId: serverConfig.walletConnectProjectId })
-      ],
-      transports: {
-        [polygon.id]: http(),
-        [mainnet.id]: http(),
-        [arbitrum.id]: http(),
-        [linea.id]: http(),
-        [avalanche.id]: http(),
-      },
-    });
-
-    setConfig({
-      wagmi: wagmiConfig,
-      transakApiKey: serverConfig.transakApiKey,
-      transakEnvironment: serverConfig.transakEnvironment
-    });
+    fetchConfig();
   }, []);
 
   const handleWalletConnect = (address, chainId) => {
@@ -57,6 +55,8 @@ function App() {
     setIsWalletConnected(!!address);
     setChain(chainId);
   };
+
+  const isWrongNetwork = isWalletConnected && chain !== 137;
 
   if (!config) {
     return <div className="loading-container">{status || 'Loading Configuration...'}</div>;
@@ -78,14 +78,15 @@ function App() {
                 <WalletConnector onConnect={handleWalletConnect} />
               </div>
               
-              {isWalletConnected && (
+              {isWrongNetwork && <p className="error-message">Please switch your wallet to the Polygon network to continue.</p>}
+
+              {isWalletConnected && !isWrongNetwork && (
                 <>
-                  <PaymentTerminal
+                  <PaymentTerminal 
                     apiKey={config.transakApiKey}
                     environment={config.transakEnvironment}
-                    merchantAddress={merchantAddress}
-                    setStatus={setStatus}
-                    activeChainId={chain}
+                    merchantAddress={merchantAddress} 
+                    setStatus={setStatus} 
                   />
                   <TransactionHistory merchantAddress={merchantAddress} />
                 </>
