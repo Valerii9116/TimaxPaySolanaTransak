@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import WalletConnector from './components/WalletConnector';
 import PaymentTerminal from './components/PaymentTerminal';
 import TransactionHistory from './components/TransactionHistory';
@@ -9,43 +9,61 @@ import { polygon } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { injected, walletConnect } from 'wagmi/connectors';
 
-// --- Configuration is now read directly from build-time environment variables ---
-const walletConnectProjectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID;
-const transakApiKey = process.env.REACT_APP_TRANSAK_API_KEY;
-const transakEnvironment = process.env.REACT_APP_TRANSAK_ENVIRONMENT;
-
-// --- Wagmi and WalletConnect configuration ---
-const metadata = {
-  name: 'TimaxPay Merchant Terminal',
-  description: 'Connect your wallet to the TimaxPay Merchant Terminal.',
-  url: 'https://merch.timaxpay.com',
-  icons: ['https://merch.timaxpay.com/logo512.png']
-};
-
-const wagmiConfig = createConfig({
-  chains: [polygon],
-  connectors: [
-    injected(),
-    walletConnect({ 
-      projectId: walletConnectProjectId || '', // Ensure projectId is not undefined
-      metadata
-    })
-  ],
-  transports: { [polygon.id]: http() },
-});
-
-const queryClient = new QueryClient();
-
 function App() {
+  const [config, setConfig] = useState(null);
   const [status, setStatus] = useState('');
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [merchantAddress, setMerchantAddress] = useState(null);
   const [chain, setChain] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [currentView, setCurrentView] = useState('terminal'); // 'terminal' or 'history'
-  
-  // A simple check to ensure config keys are present
-  const isConfigured = walletConnectProjectId && transakApiKey && transakEnvironment;
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/getConfig');
+        if (!response.ok) {
+          const errorBody = await response.json();
+          throw new Error(errorBody.error || 'Failed to fetch server configuration.');
+        }
+        const serverConfig = await response.json();
+
+        if (!serverConfig.walletConnectProjectId || !serverConfig.transakApiKey || !serverConfig.transakEnvironment) {
+          throw new Error('Configuration from server is missing required keys.');
+        }
+
+        const metadata = {
+          name: 'TimaxPay Merchant Terminal',
+          description: 'Connect your wallet to the TimaxPay Merchant Terminal.',
+          url: 'https://merch.timaxpay.com',
+          icons: ['https://merch.timaxpay.com/logo512.png']
+        };
+
+        const wagmiConfig = createConfig({
+          chains: [polygon],
+          connectors: [
+            injected(),
+            walletConnect({ 
+              projectId: serverConfig.walletConnectProjectId,
+              metadata
+            })
+          ],
+          transports: { [polygon.id]: http() },
+        });
+
+        setConfig({ 
+          wagmi: wagmiConfig, 
+          transakApiKey: serverConfig.transakApiKey,
+          transakEnvironment: serverConfig.transakEnvironment
+        });
+
+      } catch (error) {
+        console.error("Config fetch error:", error);
+        setStatus(`Error: ${error.message}`);
+      }
+    };
+    fetchConfig();
+  }, []);
 
   const handleWalletConnect = (address, chainId) => {
     setMerchantAddress(address);
@@ -69,16 +87,14 @@ function App() {
 
   const isWrongNetwork = isWalletConnected && chain !== 137;
 
-  if (!isConfigured) {
-    return (
-        <div className="loading-container">
-            Configuration is missing. Please ensure environment variables are set.
-        </div>
-    );
+  if (!config) {
+    return <div className="loading-container">{status || 'Loading Configuration...'}</div>;
   }
 
+  const queryClient = new QueryClient();
+
   return (
-    <WagmiProvider config={wagmiConfig}>
+    <WagmiProvider config={config.wagmi}>
       <QueryClientProvider client={queryClient}>
         <div className="App">
           <div className="app-container">
@@ -112,8 +128,8 @@ function App() {
 
                   {currentView === 'terminal' && (
                     <PaymentTerminal 
-                      apiKey={transakApiKey}
-                      environment={transakEnvironment}
+                      apiKey={config.transakApiKey}
+                      environment={config.transakEnvironment}
                       merchantAddress={merchantAddress} 
                       setStatus={setStatus} 
                       onNewTransaction={handleNewTransaction}
