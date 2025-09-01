@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import WalletConnector from './components/WalletConnector';
 import PaymentTerminal from './components/PaymentTerminal';
 import TransactionHistory from './components/TransactionHistory';
@@ -9,77 +9,59 @@ import { polygon } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { injected, walletConnect } from 'wagmi/connectors';
 
+// --- Configuration is now read directly from build-time environment variables ---
+const walletConnectProjectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID;
+const transakApiKey = process.env.REACT_APP_TRANSAK_API_KEY;
+const transakEnvironment = process.env.REACT_APP_TRANSAK_ENVIRONMENT;
+
+// --- Wagmi and WalletConnect configuration ---
+const metadata = {
+  name: 'TimaxPay Merchant Terminal',
+  description: 'Connect your wallet to the TimaxPay Merchant Terminal.',
+  url: 'https://merch.timaxpay.com',
+  icons: ['https://merch.timaxpay.com/logo512.png']
+};
+
+const wagmiConfig = createConfig({
+  chains: [polygon],
+  connectors: [
+    injected(),
+    walletConnect({ 
+      projectId: walletConnectProjectId || '', // Ensure projectId is not undefined
+      metadata
+    })
+  ],
+  transports: { [polygon.id]: http() },
+});
+
+const queryClient = new QueryClient();
+
 function App() {
-  const [config, setConfig] = useState(null);
   const [status, setStatus] = useState('');
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [merchantAddress, setMerchantAddress] = useState(null);
   const [chain, setChain] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [currentView, setCurrentView] = useState('terminal'); // 'terminal' or 'history'
-
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const response = await fetch('/api/getConfig');
-        if (!response.ok) throw new Error('Failed to fetch server configuration.');
-        const serverConfig = await response.json();
-
-        if (!serverConfig.walletConnectProjectId || !serverConfig.transakApiKey || !serverConfig.transakEnvironment) {
-          throw new Error('Configuration from server is missing required keys.');
-        }
-
-        // Define metadata for WalletConnect to display custom branding
-        const metadata = {
-          name: 'TimaxPay Merchant Terminal',
-          description: 'Connect your wallet to the TimaxPay Merchant Terminal.',
-          url: 'https://merch.timaxpay.com',
-          icons: ['https://merch.timaxpay.com/logo512.png']
-        };
-
-        const wagmiConfig = createConfig({
-          chains: [polygon],
-          connectors: [
-            injected(),
-            walletConnect({ 
-              projectId: serverConfig.walletConnectProjectId,
-              metadata // Pass the metadata to WalletConnect
-            })
-          ],
-          transports: { [polygon.id]: http() },
-        });
-
-        setConfig({ 
-          wagmi: wagmiConfig, 
-          transakApiKey: serverConfig.transakApiKey,
-          transakEnvironment: serverConfig.transakEnvironment
-        });
-
-      } catch (error) {
-        console.error("Config fetch error:", error);
-        setStatus(`Error: ${error.message}`);
-      }
-    };
-    fetchConfig();
-  }, []);
+  
+  // A simple check to ensure config keys are present
+  const isConfigured = walletConnectProjectId && transakApiKey && transakEnvironment;
 
   const handleWalletConnect = (address, chainId) => {
     setMerchantAddress(address);
     setIsWalletConnected(!!address);
     setChain(chainId);
     if (!address) {
-      setCurrentView('terminal'); // Reset to terminal view on disconnect
+      setCurrentView('terminal');
     }
   };
 
   const handleNewTransaction = (transactionData) => {
     setTransactions(prevTransactions => {
-      // Check if a transaction with the same ID already exists to prevent duplicates
       const isDuplicate = prevTransactions.some(tx => tx.id === transactionData.id);
       if (isDuplicate) {
-        return prevTransactions; // If it's a duplicate, return the existing state
+        return prevTransactions;
       }
-      // Otherwise, add the new transaction to the top of the list
       return [transactionData, ...prevTransactions];
     });
     setCurrentView('history');
@@ -87,14 +69,16 @@ function App() {
 
   const isWrongNetwork = isWalletConnected && chain !== 137;
 
-  if (!config) {
-    return <div className="loading-container">{status || 'Loading Configuration...'}</div>;
+  if (!isConfigured) {
+    return (
+        <div className="loading-container">
+            Configuration is missing. Please ensure environment variables are set.
+        </div>
+    );
   }
 
-  const queryClient = new QueryClient();
-
   return (
-    <WagmiProvider config={config.wagmi}>
+    <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <div className="App">
           <div className="app-container">
@@ -128,8 +112,8 @@ function App() {
 
                   {currentView === 'terminal' && (
                     <PaymentTerminal 
-                      apiKey={config.transakApiKey}
-                      environment={config.transakEnvironment}
+                      apiKey={transakApiKey}
+                      environment={transakEnvironment}
                       merchantAddress={merchantAddress} 
                       setStatus={setStatus} 
                       onNewTransaction={handleNewTransaction}
