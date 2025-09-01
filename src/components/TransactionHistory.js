@@ -1,58 +1,92 @@
 import React from 'react';
 
-// SVG Icons for transaction status
-const SuccessIcon = () => (
-  <svg className="status-icon success" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#4CAF50"/>
+// SVG icon for the external link
+const ExternalLinkIcon = () => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="14" 
+    height="14" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className="external-link-icon"
+  >
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+    <polyline points="15 3 21 3 21 9"></polyline>
+    <line x1="10" y1="14" x2="21" y2="3"></line>
   </svg>
 );
 
-const TransactionItem = ({ tx }) => {
-  const isPayment = tx.type === 'Payment';
-  const amount = isPayment 
-    ? `${tx.fiatAmount} ${tx.fiatCurrency}` 
-    : `${tx.cryptoAmount} ${tx.cryptoCurrency}`;
-  const title = isPayment ? `Payment from Customer` : `Withdrawal to Wallet`;
-
-  return (
-    <div className="history-item">
-      <div className="history-item-icon">
-        <SuccessIcon />
-      </div>
-      <div className="history-item-details">
-        <span className="history-item-title">{title}</span>
-        <span className="history-item-id">ID: {tx.id.substring(0, 16)}...</span>
-      </div>
-      <div className="history-item-amount">
-        <span className={isPayment ? 'amount-positive' : 'amount-negative'}>
-          {isPayment ? '+' : '-'} {amount}
-        </span>
-        <a 
-          href={`https://polygonscan.com/tx/${tx.transactionHash}`} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="history-item-explorer"
-        >
-          View on Explorer
-        </a>
-      </div>
-    </div>
-  );
-};
 
 function TransactionHistory({ transactions }) {
+
+  const getExplorerLink = (hash) => {
+    if (!hash) return null;
+    return `https://polygonscan.com/tx/${hash}`;
+  };
+
+  const renderTransactionItem = (tx) => {
+    const isPayment = tx.type === 'Payment';
+    
+    // Safely parse numbers to handle potential string values and format them
+    const cryptoAmountParsed = parseFloat(tx.cryptoAmount);
+    const fiatAmountParsed = parseFloat(tx.fiatAmount);
+
+    const formattedCryptoAmount = !isNaN(cryptoAmountParsed) ? cryptoAmountParsed.toFixed(4) : 'N/A';
+    const formattedFiatAmount = !isNaN(fiatAmountParsed) ? fiatAmountParsed.toFixed(2) : 'N/A';
+    
+    const spentText = isPayment 
+      ? `Spent: ${formattedFiatAmount} ${tx.fiatCurrency}`
+      : `Spent: ${formattedCryptoAmount} ${tx.cryptoCurrency}`;
+      
+    const receivedText = isPayment
+      ? `Received: ${formattedCryptoAmount} ${tx.cryptoCurrency}`
+      : `Received: ${formattedFiatAmount} ${tx.fiatCurrency}`;
+
+    return (
+      <li key={tx.id} className="transaction-item">
+        <div className="transaction-icon">
+          <div className={isPayment ? 'icon-credit' : 'icon-debit'}>
+            {isPayment ? '↓' : '↑'}
+          </div>
+        </div>
+        <div className="transaction-details">
+          <span className="transaction-type">{isPayment ? 'Payment Received' : 'Withdrawal Processed'}</span>
+          <span className="transaction-date">{new Date(tx.createdAt).toLocaleString()}</span>
+          {tx.transactionHash && (
+             <a href={getExplorerLink(tx.transactionHash)} target="_blank" rel="noopener noreferrer" className="explorer-link">
+                View on PolygonScan <ExternalLinkIcon />
+             </a>
+          )}
+        </div>
+        <div className="transaction-amounts">
+           <span className="transaction-flow-spent">{spentText}</span>
+           <span className="transaction-flow-received">{receivedText}</span>
+        </div>
+      </li>
+    );
+  };
+
+  if (!transactions || transactions.length === 0) {
+    return (
+      <div className="step-card">
+        <h3>Transaction History</h3>
+        <div className="no-transactions-placeholder">
+          <p>No transactions have been recorded in this session yet.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="step-card history-container">
+    <div className="step-card">
       <h3>Transaction History</h3>
-      {transactions && transactions.length > 0 ? (
-        <div className="history-list">
-          {transactions.map(tx => <TransactionItem key={tx.id} tx={tx} />)}
-        </div>
-      ) : (
-        <div className="history-list-placeholder">
-          <p>Your recent transactions will appear here.</p>
-        </div>
-      )}
+      <ul className="transaction-list">
+        {transactions.map(renderTransactionItem)}
+      </ul>
     </div>
   );
 }

@@ -19,7 +19,7 @@ function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus, onNe
       apiKey: apiKey,
       environment: environment,
       productsAvailed: isBuyFlow ? 'BUY' : 'SELL',
-      fiatCurrency: fiatCurrency, // Use selected fiat currency for both buy and sell
+      fiatCurrency: fiatCurrency,
       cryptoCurrencyCode: 'USDC',
       network: 'polygon',
       walletAddress: merchantAddress,
@@ -32,28 +32,50 @@ function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus, onNe
       widgetWidth: '100%',
     });
 
-    // Define event handlers
     const handleOrderSuccessful = (orderData) => {
+      // Log the full data object to the console for easier debugging in the future
+      console.log("Transak Success Data:", JSON.stringify(orderData, null, 2));
       setStatus('Success! The transaction was completed.');
-      if (onNewTransaction && orderData.status) {
+      
+      const transactionDetails = orderData.status || orderData;
+
+      // Use the transaction ID if available, otherwise fall back to the transaction hash as a unique identifier
+      const transactionId = transactionDetails.id || transactionDetails.transactionHash;
+
+      if (onNewTransaction && transactionId) {
         const transactionType = isBuyFlow ? 'Payment' : 'Withdrawal';
-        onNewTransaction({ ...orderData.status, type: transactionType });
+        
+        // Create a new transaction object with fallbacks to prevent errors
+        const newTransaction = {
+            id: transactionId,
+            type: transactionType,
+            status: transactionDetails.status || 'COMPLETED',
+            createdAt: transactionDetails.createdAt || new Date().toISOString(),
+            transactionHash: transactionDetails.transactionHash,
+            cryptoAmount: transactionDetails.cryptoAmount || 0,
+            cryptoCurrency: transactionDetails.cryptoCurrency || 'USDC',
+            fiatAmount: transactionDetails.fiatAmount || 0,
+            fiatCurrency: transactionDetails.fiatCurrency || fiatCurrency,
+        };
+        
+        onNewTransaction(newTransaction);
+      } else {
+        console.error("Could not process transaction success data: A unique ID or hash is missing.", transactionDetails);
+        setStatus("Error: Could not record the transaction in the history.");
       }
+      
       setTimeout(() => transak.close(), 3000);
     };
 
-    const handleOrderFailed = () => {
+    const handleOrderFailed = (orderData) => {
       setStatus('Transaction failed.');
-    };
-    
-    // This handler will be called when the widget is closed
-    const handleWidgetClose = () => {
-      setStatus('Widget closed.');
-      // The transak instance is short-lived, so manual listener removal is not required here.
-      // The duplicate transaction issue is handled in App.js.
+      setTimeout(() => transak.close(), 3000);
     };
 
-    // Attach listeners to the instance
+    const handleWidgetClose = () => {
+      setStatus('Widget closed by user.');
+    };
+
     transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, handleOrderSuccessful);
     transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, handleOrderFailed);
     transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, handleWidgetClose);

@@ -1,22 +1,26 @@
 module.exports = async function (context, req) {
-  const config = {
-    transakApiKey: process.env.TRANSAK_API_KEY,
-    walletConnectProjectId: process.env.WALLETCONNECT_PROJECT_ID,
-    transakEnvironment: process.env.TRANSAK_ENVIRONMENT,
-  };
+  context.log('GetConfig function processed a request.');
 
-  if (config.transakApiKey && config.walletConnectProjectId && config.transakEnvironment) {
-    context.res = {
-      status: 200,
-      body: config,
-      headers: { 'Content-Type': 'application/json' }
-    };
-  } else {
-    context.log.error("CRITICAL ERROR: One or more API keys or environment are not set in application settings.");
-    context.res = {
-      status: 500,
-      body: { error: "Server configuration is incomplete." },
-      headers: { 'Content-Type': 'application/json' }
-    };
+  // These values should be set in your Azure Static Web App's "Configuration" (Environment Variables)
+  const walletConnectProjectId = process.env.WALLETCONNECT_PROJECT_ID;
+  const transakApiKey = process.env.TRANSAK_API_KEY;
+  const transakEnvironment = process.env.TRANSAK_ENVIRONMENT;
+
+  if (!walletConnectProjectId || !transakApiKey || !transakEnvironment) {
+      context.res = {
+          status: 500,
+          body: "Server configuration is incomplete. Required API keys are missing."
+      };
+      return;
   }
-};
+
+  context.res = {
+      // status: 200, /* Defaults to 200 */
+      body: {
+          walletConnectProjectId,
+          transakApiKey,
+          transakEnvironment
+      }
+  };
+}
+

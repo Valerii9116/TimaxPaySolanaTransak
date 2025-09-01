@@ -16,15 +16,16 @@ function App() {
   const [merchantAddress, setMerchantAddress] = useState(null);
   const [chain, setChain] = useState(null);
   const [transactions, setTransactions] = useState([]);
-  const [currentView, setCurrentView] = useState('terminal'); // 'terminal' or 'history'
+  const [currentView, setCurrentView] = useState('terminal');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchConfig = async () => {
+      setIsLoading(true);
       try {
         const response = await fetch('/api/getConfig');
         if (!response.ok) {
-          const errorBody = await response.json();
-          throw new Error(errorBody.error || 'Failed to fetch server configuration.');
+          throw new Error(`API Error: ${response.statusText} (Status: ${response.status})`);
         }
         const serverConfig = await response.json();
 
@@ -34,7 +35,7 @@ function App() {
 
         const metadata = {
           name: 'TimaxPay Merchant Terminal',
-          description: 'Connect your wallet to the TimaxPay Merchant Terminal.',
+          description: 'Connect your wallet.',
           url: 'https://merch.timaxpay.com',
           icons: ['https://merch.timaxpay.com/logo512.png']
         };
@@ -43,7 +44,7 @@ function App() {
           chains: [polygon],
           connectors: [
             injected(),
-            walletConnect({ 
+            walletConnect({
               projectId: serverConfig.walletConnectProjectId,
               metadata
             })
@@ -51,8 +52,8 @@ function App() {
           transports: { [polygon.id]: http() },
         });
 
-        setConfig({ 
-          wagmi: wagmiConfig, 
+        setConfig({
+          wagmi: wagmiConfig,
           transakApiKey: serverConfig.transakApiKey,
           transakEnvironment: serverConfig.transakEnvironment
         });
@@ -60,6 +61,8 @@ function App() {
       } catch (error) {
         console.error("Config fetch error:", error);
         setStatus(`Error: ${error.message}`);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchConfig();
@@ -69,7 +72,7 @@ function App() {
     setMerchantAddress(address);
     setIsWalletConnected(!!address);
     setChain(chainId);
-    if (!address) {
+    if (address) {
       setCurrentView('terminal');
     }
   };
@@ -87,7 +90,7 @@ function App() {
 
   const isWrongNetwork = isWalletConnected && chain !== 137;
 
-  if (!config) {
+  if (isLoading || !config) {
     return <div className="loading-container">{status || 'Loading Configuration...'}</div>;
   }
 
@@ -103,23 +106,29 @@ function App() {
               <p className="subtitle">Accept fiat, receive crypto.</p>
             </header>
             <main className="App-main">
+
+              {/* The WalletConnector is now rendered only ONCE, preventing the overlap bug. */}
               <div className="step-card">
                 <WalletConnector onConnect={handleWalletConnect} />
               </div>
-              
-              {isWrongNetwork && <p className="error-message">Please switch your wallet to the Polygon network to continue.</p>}
 
+              {/* Show the network error if applicable */}
+              {isWrongNetwork && (
+                  <p className="error-message">Please switch your wallet to the Polygon network to continue.</p>
+              )}
+
+              {/* Show the main content ONLY if the wallet is connected and on the correct network */}
               {isWalletConnected && !isWrongNetwork && (
-                <>
+                <div className="connected-view">
                   <nav className="main-nav">
-                    <button 
-                      onClick={() => setCurrentView('terminal')} 
+                    <button
+                      onClick={() => setCurrentView('terminal')}
                       className={currentView === 'terminal' ? 'active' : ''}
                     >
                       Terminal
                     </button>
-                    <button 
-                      onClick={() => setCurrentView('history')} 
+                    <button
+                      onClick={() => setCurrentView('history')}
                       className={currentView === 'history' ? 'active' : ''}
                     >
                       History
@@ -127,19 +136,19 @@ function App() {
                   </nav>
 
                   {currentView === 'terminal' && (
-                    <PaymentTerminal 
+                    <PaymentTerminal
                       apiKey={config.transakApiKey}
                       environment={config.transakEnvironment}
-                      merchantAddress={merchantAddress} 
-                      setStatus={setStatus} 
+                      merchantAddress={merchantAddress}
+                      setStatus={setStatus}
                       onNewTransaction={handleNewTransaction}
                     />
                   )}
-                  
+
                   {currentView === 'history' && (
                     <TransactionHistory transactions={transactions} />
                   )}
-                </>
+                </div>
               )}
 
               {status && <p className="status-message main-status">{status}</p>}
