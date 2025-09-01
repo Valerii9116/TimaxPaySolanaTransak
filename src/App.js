@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import WalletConnector from './components/WalletConnector';
 import PaymentTerminal from './components/PaymentTerminal';
-import TransactionHistory from './components/TransactionHistory';
 import './App.css';
 
 import { WagmiProvider, createConfig, http } from 'wagmi';
-import { polygon } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { injected, walletConnect } from 'wagmi/connectors';
+import { SUPPORTED_CHAINS } from './config';
+import { polygon } from 'wagmi/chains';
 
 function App() {
   const [config, setConfig] = useState(null);
@@ -15,9 +15,10 @@ function App() {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [merchantAddress, setMerchantAddress] = useState(null);
   const [chain, setChain] = useState(null);
-  const [transactions, setTransactions] = useState([]);
-  const [currentView, setCurrentView] = useState('terminal');
   const [isLoading, setIsLoading] = useState(true);
+
+  const [selectedChain, setSelectedChain] = useState(polygon); 
+  const [selectedStablecoin, setSelectedStablecoin] = useState('USDC');
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -41,7 +42,7 @@ function App() {
         };
 
         const wagmiConfig = createConfig({
-          chains: [polygon],
+          chains: SUPPORTED_CHAINS,
           connectors: [
             injected(),
             walletConnect({
@@ -49,7 +50,7 @@ function App() {
               metadata
             })
           ],
-          transports: { [polygon.id]: http() },
+          transports: SUPPORTED_CHAINS.reduce((obj, chain) => ({ ...obj, [chain.id]: http() }), {}),
         });
 
         setConfig({
@@ -72,29 +73,55 @@ function App() {
     setMerchantAddress(address);
     setIsWalletConnected(!!address);
     setChain(chainId);
-    if (address) {
-      setCurrentView('terminal');
-    }
   };
 
-  const handleNewTransaction = (transactionData) => {
-    setTransactions(prevTransactions => {
-      const isDuplicate = prevTransactions.some(tx => tx.id === transactionData.id);
-      if (isDuplicate) {
-        return prevTransactions;
-      }
-      return [transactionData, ...prevTransactions];
-    });
-    setCurrentView('history');
-  };
-
-  const isWrongNetwork = isWalletConnected && chain !== 137;
+  const isWrongNetwork = isWalletConnected && chain !== selectedChain.id;
 
   if (isLoading || !config) {
     return <div className="loading-container">{status || 'Loading Configuration...'}</div>;
   }
 
   const queryClient = new QueryClient();
+
+  const renderContent = () => {
+    if (!isWalletConnected) {
+      return (
+        <div className="connection-view">
+          <div className="step-card">
+            <WalletConnector 
+              onConnect={handleWalletConnect} 
+              selectedChain={selectedChain}
+              selectedStablecoin={selectedStablecoin}
+            />
+          </div>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="application-view">
+        <div className="step-card">
+          <WalletConnector 
+            onConnect={handleWalletConnect} 
+            selectedChain={selectedChain}
+            selectedStablecoin={selectedStablecoin}
+          />
+        </div>
+        
+        <PaymentTerminal
+            apiKey={config.transakApiKey}
+            environment={config.transakEnvironment}
+            merchantAddress={merchantAddress}
+            setStatus={setStatus}
+            selectedChain={selectedChain}
+            setSelectedChain={setSelectedChain}
+            selectedStablecoin={selectedStablecoin}
+            setSelectedStablecoin={setSelectedStablecoin}
+            isInteractionDisabled={isWrongNetwork}
+        />
+      </div>
+    );
+  };
 
   return (
     <WagmiProvider config={config.wagmi}>
@@ -106,51 +133,7 @@ function App() {
               <p className="subtitle">Accept fiat, receive crypto.</p>
             </header>
             <main className="App-main">
-
-              {/* The WalletConnector is now rendered only ONCE, preventing the overlap bug. */}
-              <div className="step-card">
-                <WalletConnector onConnect={handleWalletConnect} />
-              </div>
-
-              {/* Show the network error if applicable */}
-              {isWrongNetwork && (
-                  <p className="error-message">Please switch your wallet to the Polygon network to continue.</p>
-              )}
-
-              {/* Show the main content ONLY if the wallet is connected and on the correct network */}
-              {isWalletConnected && !isWrongNetwork && (
-                <div className="connected-view">
-                  <nav className="main-nav">
-                    <button
-                      onClick={() => setCurrentView('terminal')}
-                      className={currentView === 'terminal' ? 'active' : ''}
-                    >
-                      Terminal
-                    </button>
-                    <button
-                      onClick={() => setCurrentView('history')}
-                      className={currentView === 'history' ? 'active' : ''}
-                    >
-                      History
-                    </button>
-                  </nav>
-
-                  {currentView === 'terminal' && (
-                    <PaymentTerminal
-                      apiKey={config.transakApiKey}
-                      environment={config.transakEnvironment}
-                      merchantAddress={merchantAddress}
-                      setStatus={setStatus}
-                      onNewTransaction={handleNewTransaction}
-                    />
-                  )}
-
-                  {currentView === 'history' && (
-                    <TransactionHistory transactions={transactions} />
-                  )}
-                </div>
-              )}
-
+              {renderContent()}
               {status && <p className="status-message main-status">{status}</p>}
             </main>
           </div>

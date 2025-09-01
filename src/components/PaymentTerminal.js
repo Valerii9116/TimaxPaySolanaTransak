@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import Transak from '@transak/transak-sdk';
+import { SUPPORTED_CHAINS, SUPPORTED_STABLECOINS, TRANSAK_NETWORK_MAP, STABLECOIN_ADDRESSES } from '../config';
 
-function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus, onNewTransaction }) {
+function PaymentTerminal({ 
+    apiKey, 
+    environment, 
+    merchantAddress, 
+    setStatus, 
+    selectedChain, 
+    setSelectedChain,
+    selectedStablecoin,
+    setSelectedStablecoin,
+    isInteractionDisabled // New prop to control button state
+}) {
   const [fiatCurrency, setFiatCurrency] = useState('GBP');
   const [amount, setAmount] = useState('20.00');
   const [terminalMode, setTerminalMode] = useState('PAYMENT');
@@ -13,6 +24,13 @@ function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus, onNe
     }
 
     const isBuyFlow = terminalMode === 'PAYMENT';
+    const transakNetwork = TRANSAK_NETWORK_MAP[selectedChain.id];
+
+    if (!transakNetwork) {
+        setStatus(`Error: The selected network "${selectedChain.name}" is not supported by the payment provider.`);
+        return;
+    }
+    
     setStatus(`Initializing ${isBuyFlow ? 'Payment' : 'Withdrawal'}...`);
     
     const transak = new Transak({
@@ -20,8 +38,8 @@ function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus, onNe
       environment: environment,
       productsAvailed: isBuyFlow ? 'BUY' : 'SELL',
       fiatCurrency: fiatCurrency,
-      cryptoCurrencyCode: 'USDC',
-      network: 'polygon',
+      cryptoCurrencyCode: selectedStablecoin,
+      network: transakNetwork,
       walletAddress: merchantAddress,
       fiatAmount: isBuyFlow ? parseFloat(amount) : undefined,
       cryptoAmount: isBuyFlow ? undefined : parseFloat(amount),
@@ -32,56 +50,36 @@ function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus, onNe
       widgetWidth: '100%',
     });
 
-    const handleOrderSuccessful = (orderData) => {
-      // Log the full data object to the console for easier debugging in the future
-      console.log("Transak Success Data:", JSON.stringify(orderData, null, 2));
+    transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (orderData) => {
       setStatus('Success! The transaction was completed.');
-      
-      const transactionDetails = orderData.status || orderData;
-
-      // Use the transaction ID if available, otherwise fall back to the transaction hash as a unique identifier
-      const transactionId = transactionDetails.id || transactionDetails.transactionHash;
-
-      if (onNewTransaction && transactionId) {
-        const transactionType = isBuyFlow ? 'Payment' : 'Withdrawal';
-        
-        // Create a new transaction object with fallbacks to prevent errors
-        const newTransaction = {
-            id: transactionId,
-            type: transactionType,
-            status: transactionDetails.status || 'COMPLETED',
-            createdAt: transactionDetails.createdAt || new Date().toISOString(),
-            transactionHash: transactionDetails.transactionHash,
-            cryptoAmount: transactionDetails.cryptoAmount || 0,
-            cryptoCurrency: transactionDetails.cryptoCurrency || 'USDC',
-            fiatAmount: transactionDetails.fiatAmount || 0,
-            fiatCurrency: transactionDetails.fiatCurrency || fiatCurrency,
-        };
-        
-        onNewTransaction(newTransaction);
-      } else {
-        console.error("Could not process transaction success data: A unique ID or hash is missing.", transactionDetails);
-        setStatus("Error: Could not record the transaction in the history.");
-      }
-      
       setTimeout(() => transak.close(), 3000);
-    };
-
-    const handleOrderFailed = (orderData) => {
+    });
+    transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, () => {
       setStatus('Transaction failed.');
       setTimeout(() => transak.close(), 3000);
-    };
-
-    const handleWidgetClose = () => {
+    });
+    transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, () => {
       setStatus('Widget closed by user.');
-    };
-
-    transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, handleOrderSuccessful);
-    transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, handleOrderFailed);
-    transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, handleWidgetClose);
+    });
 
     transak.init();
   };
+
+  const handleNetworkChange = (e) => {
+    const chainId = parseInt(e.target.value, 10);
+    const newChain = SUPPORTED_CHAINS.find(c => c.id === chainId);
+    if (newChain) {
+        setSelectedChain(newChain);
+        const availableCoins = SUPPORTED_STABLECOINS.filter(c => !!STABLECOIN_ADDRESSES[newChain.id]?.[c.symbol]);
+        if (!availableCoins.some(c => c.symbol === selectedStablecoin)) {
+            setSelectedStablecoin(availableCoins[0]?.symbol || ''); 
+        }
+    }
+  };
+
+  const availableStablecoins = SUPPORTED_STABLECOINS.filter(
+    coin => !!STABLECOIN_ADDRESSES[selectedChain.id]?.[coin.symbol]
+  );
 
   return (
     <div className="step-card actions-container">
@@ -89,6 +87,26 @@ function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus, onNe
         <button onClick={() => setTerminalMode('PAYMENT')} className={terminalMode === 'PAYMENT' ? 'active' : ''}>Accept Payment</button>
         <button onClick={() => setTerminalMode('WITHDRAW')} className={terminalMode === 'WITHDRAW' ? 'active' : ''}>Withdraw Funds</button>
       </div>
+      
+      <div className="network-selectors">
+        <div className="selector-group">
+            <label htmlFor="network-select">Network</label>
+            <select id="network-select" value={selectedChain.id} onChange={handleNetworkChange}>
+                {SUPPORTED_CHAINS.map(chain => (
+                    <option key={chain.id} value={chain.id}>{chain.name}</option>
+                ))}
+            </select>
+        </div>
+        <div className="selector-group">
+             <label htmlFor="stablecoin-select">Stablecoin</label>
+            <select id="stablecoin-select" value={selectedStablecoin} onChange={(e) => setSelectedStablecoin(e.target.value)} disabled={availableStablecoins.length === 0}>
+                {availableStablecoins.length > 0 ? availableStablecoins.map(coin => (
+                    <option key={coin.symbol} value={coin.symbol}>{coin.symbol}</option>
+                )) : <option>Not Available</option>}
+            </select>
+        </div>
+      </div>
+
       <div className="terminal-body">
         <h3>{terminalMode === 'PAYMENT' ? 'Enter Amount to Charge' : 'Enter Amount to Withdraw'}</h3>
         <div className="amount-input-container">
@@ -105,8 +123,17 @@ function PaymentTerminal({ apiKey, environment, merchantAddress, setStatus, onNe
             <option value="USD">USD</option>
           </select>
         </div>
-        <button onClick={launchTransak} className="launch-button">
-          {terminalMode === 'PAYMENT' ? `Charge ${amount} ${fiatCurrency}` : `Withdraw ${amount} USDC to ${fiatCurrency}`}
+        <button 
+          onClick={launchTransak} 
+          className="launch-button" 
+          disabled={availableStablecoins.length === 0 || isInteractionDisabled}
+        >
+          {isInteractionDisabled 
+              ? 'Switch Network to Continue' 
+              : terminalMode === 'PAYMENT' 
+                  ? `Charge ${amount} ${fiatCurrency}` 
+                  : `Withdraw ${amount} ${selectedStablecoin} to ${fiatCurrency}`
+          }
         </button>
       </div>
     </div>

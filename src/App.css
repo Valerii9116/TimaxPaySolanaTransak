@@ -1,4 +1,9 @@
 /* General App Styles */
+/* Universal box-sizing for more predictable layouts */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -12,11 +17,12 @@ body {
 
 .App {
   text-align: center;
-  padding: 20px;
+  padding: 2rem 1rem;
 }
 
 .app-container {
-  max-width: 600px;
+  max-width: 550px;
+  width: 100%;
   margin: 0 auto;
   background-color: #1e1e1e;
   border-radius: 12px;
@@ -74,113 +80,115 @@ body {
   padding: 12px;
   border-radius: 8px;
   font-weight: 500;
-  margin-top: -10px; /* Pull up under wallet card */
+  margin-top: -10px; 
   margin-bottom: 20px;
 }
 
 
-/* Wallet Connector Styles */
-.connect-container h3, .wallet-info h3 {
+/* --- Redesigned Wallet Connector --- */
+
+/* Connect View */
+.connect-container h3 {
   margin-top: 0;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   color: #fff;
 }
 
-.wallet-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 15px;
-}
-
-.wallet-option {
+/* New styles for the text-based wallet list */
+.wallet-text-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  gap: 12px;
+}
+
+.wallet-text-button {
   background-color: #333;
   border: 1px solid #444;
   border-radius: 8px;
-  padding: 20px;
+  width: 100%;
+  padding: 15px;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.2s;
+  transition: all 0.2s ease;
   color: #e0e0e0;
-  font-size: 1em;
+  font-size: 1.1em;
   font-weight: 500;
+  text-align: center;
 }
 
-.wallet-option:hover {
+.wallet-text-button:hover {
   background-color: #444;
   transform: translateY(-2px);
+  border-color: #555;
 }
 
-.wallet-option svg {
-  margin-bottom: 10px;
-}
 
-.wallet-info {
+/* Connected View (Compact Redesign) */
+.wallet-info-connected {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: space-between;
   gap: 15px;
 }
 
-.wallet-info p {
+.wallet-address-balance {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.wallet-address {
   margin: 0;
   font-size: 1.1em;
+  font-weight: 500;
 }
 
-.balance-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.balance-display {
   background-color: #333;
-  padding: 8px 15px;
-  border-radius: 20px;
-}
-
-.balance-info {
-  font-size: 0.95em;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 0.9em;
+  color: #c0c0c0;
 }
 .balance-info.error {
   color: #ff6b6b;
 }
 
-.disconnect-button, .switch-button {
+.wallet-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.disconnect-button-compact, .switch-button-compact {
   background-color: #e74c3c;
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.2s;
-  font-size: 0.9em;
+  font-size: 0.85em;
   font-weight: 600;
 }
 
-.switch-button {
+.switch-button-compact {
   background-color: #3498db;
 }
 
-.disconnect-button:hover {
+.disconnect-button-compact:hover {
   background-color: #c0392b;
 }
-.switch-button:hover {
+.switch-button-compact:hover {
   background-color: #2980b9;
 }
 
 
 /* Main Navigation & Content Area */
-.connected-view {
-  position: relative;
-}
-
 .main-nav {
   display: flex;
   justify-content: center;
   gap: 10px;
   margin-bottom: 20px;
-  position: relative;
-  z-index: 10;
 }
 
 .main-nav button {
@@ -212,12 +220,12 @@ body {
 }
 .terminal-tabs button {
   flex: 1;
-  padding: 15px;
+  padding: 15px 5px;
   border: none;
   background: none;
   color: #a0a0a0;
   cursor: pointer;
-  font-size: 1.05em;
+  font-size: 1em;
   font-weight: 600;
   border-bottom: 3px solid transparent;
   transition: all 0.2s;
@@ -235,6 +243,35 @@ body {
   flex-direction: column;
   gap: 20px;
 }
+
+.network-selectors {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.selector-group {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.selector-group label {
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: #a0a0a0;
+}
+
+.selector-group select {
+    padding: 12px;
+    font-size: 1em;
+    border: 1px solid #444;
+    background-color: #2a2a2a;
+    color: #fff;
+    border-radius: 8px;
+}
+
 .amount-input-container {
   display: flex;
   gap: 10px;
@@ -248,6 +285,7 @@ body {
   color: #fff;
   border-radius: 8px;
   text-align: right;
+  width: 60%;
 }
 .currency-select {
   flex: 1;
@@ -273,123 +311,72 @@ body {
 .launch-button:hover {
   background-color: #2ecc71;
 }
-
-/* Transaction History Styles */
-.transaction-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+.launch-button:disabled {
+    background-color: #555;
+    color: #999;
+    cursor: not-allowed;
 }
 
-.transaction-item {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 15px;
-  background-color: #333;
-  border-radius: 8px;
-}
+/* --- Mobile Responsiveness --- */
+@media (max-width: 640px) {
+  .App {
+    padding: 1rem 0.5rem;
+  }
 
-.transaction-item .transaction-details {
-  flex-grow: 1;
-  text-align: left;
-}
+  .app-container {
+    padding: 15px;
+  }
 
-.transaction-icon {
-  font-size: 1.5em;
-  font-weight: bold;
-}
+  .App-header h1 {
+    font-size: 1.8em;
+  }
 
-.icon-credit, .icon-debit {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-}
-.icon-credit {
-  background-color: #27ae60;
-}
-.icon-debit {
-  background-color: #e74c3c;
-}
+  .subtitle {
+    font-size: 1em;
+  }
 
-.transaction-type {
-  display: block;
-  font-weight: 600;
-  font-size: 1.1em;
-  color: #fff;
-}
+  .step-card {
+    padding: 20px 15px;
+  }
+  
+  .wallet-text-button {
+    padding: 12px;
+    font-size: 1em;
+  }
 
-.transaction-date {
-  font-size: 0.85em;
-  color: #a0a0a0;
-  margin-bottom: 5px;
-  display: block;
-}
-
-.explorer-link {
-  font-size: 0.9em;
-  color: #3498db;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: color 0.2s;
-}
-.explorer-link:hover {
-  color: #5dade2;
-}
-.external-link-icon {
-  position: relative;
-  top: -1px;
-}
-
-.transaction-amounts {
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
-
-.transaction-flow {
-    display: flex;
-    justify-content: flex-end;
+  .wallet-info-connected {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .wallet-address-balance {
     align-items: center;
-    gap: 8px;
-    width: 100%;
-}
+  }
+  .wallet-actions {
+    justify-content: center;
+  }
 
-.transaction-flow-label {
+  .network-selectors {
+    flex-direction: row;
+    gap: 10px;
+  }
+  .selector-group {
+    flex: 1;
+  }
+
+  .amount-input {
+    font-size: 1.3em;
+    padding: 12px;
+  }
+
+  .currency-select {
+    padding: 12px;
     font-size: 0.9em;
-    color: #a0a0a0;
-}
+  }
 
-
-.transaction-flow-spent, .transaction-flow-received {
-  font-size: 1em;
-}
-
-.transaction-flow-spent {
-  color: #ff6b6b;
-  font-weight: 500;
-}
-
-.transaction-flow-received {
-  color: #2ecc71;
-  font-weight: 600;
-}
-
-
-.no-transactions-placeholder {
-  padding: 30px;
-  text-align: center;
-  color: #a0a0a0;
+  .launch-button {
+    padding: 15px;
+    font-size: 1.1em;
+  }
 }
 
