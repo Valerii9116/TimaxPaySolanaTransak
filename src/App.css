@@ -1,4 +1,4 @@
-/* General App Styles */
+/* General App Styling */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -12,101 +12,42 @@ body {
 
 .App {
   text-align: center;
+  padding: 20px;
 }
 
 .app-container {
   max-width: 500px;
   margin: 40px auto;
-  padding: 20px;
-  background-color: #282c34;
+  padding: 30px;
+  background-color: #2c2c2c;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-}
-
-.App-header {
-  margin-bottom: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .App-header h1 {
-  font-size: 2rem;
-  margin-bottom: 5px;
-  color: #61dafb;
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: 10px;
 }
 
 .subtitle {
-  color: #aaa;
-  font-size: 1rem;
+  color: #a0a0a0;
+  margin-top: 0;
+  margin-bottom: 30px;
+  font-size: 1.1rem;
 }
 
-/* Step Cards */
+/* Card Styling */
 .step-card {
-  background-color: #333842;
-  border-radius: 10px;
+  background-color: #383838;
   padding: 25px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  margin-bottom: 25px;
+  border: 1px solid #4a4a4a;
 }
 
-/* Main Navigation Tabs */
-.main-nav {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.main-nav button {
-  padding: 10px 20px;
-  font-size: 1rem;
-  font-weight: 500;
-  background-color: #444a57;
-  color: #aaa;
-  border: 1px solid #444a57;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-}
-
-.main-nav button:hover {
-  background-color: #555c68;
-  color: #f0f0f0;
-}
-
-.main-nav button.active {
-  background-color: #61dafb;
-  color: #1a1a1a;
-  border-color: #61dafb;
-}
-
-
-/* Loading and Status Messages */
-.loading-container, .status-message {
-  padding: 20px;
-  border-radius: 8px;
-  margin-top: 20px;
-  font-size: 1rem;
-}
-
-.loading-container {
-  color: #61dafb;
-}
-
-.main-status {
-  background-color: rgba(97, 218, 251, 0.1);
-  color: #61dafb;
-}
-
-.error-message {
-  color: #ff6b6b;
-  background-color: rgba(255, 107, 107, 0.1);
-  padding: 10px;
-  border-radius: 8px;
-  margin: 10px 0;
-}
-
-
-/* Wallet Connector Styles */
-.wallet-info {
+/* Wallet Connector Styling */
+.wallet-info, .connect-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -115,237 +56,268 @@ body {
 
 .wallet-info p {
   margin: 0;
-  font-size: 0.95rem;
-  word-break: break-all;
+  font-size: 1.1rem;
 }
 
 .balance-container {
   display: flex;
   align-items: center;
-  gap: 15px;
-  background-color: #282c34;
+  gap: 10px;
+  background-color: #444;
   padding: 8px 15px;
   border-radius: 20px;
-  width: fit-content;
 }
 
 .balance-info {
-  font-weight: 500;
-  color: #f0f0f0;
+  font-size: 0.95rem;
+  color: #ccc;
 }
-
 .balance-info.error {
-  color: #ff6b6b;
+  color: #ff9a9a;
 }
 
-.connect-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+.switch-button {
+  background-color: #ffc107;
+  color: #1a1a1a;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 15px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+.switch-button:hover {
+  background-color: #ffae00;
+}
+
+/* New Wallet List Styling */
+.connect-container h3 {
+  margin: 0 0 15px 0;
+  color: #e0e0e0;
 }
 
 .wallet-list {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  width: 100%;
+  gap: 10px;
 }
 
 .wallet-option {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid #444a57;
-  background-color: #282c34;
+  gap: 15px;
+  width: 100%;
+  padding: 15px;
+  background-color: #4a4a4a;
   color: #f0f0f0;
+  border: 1px solid #5a5a5a;
+  border-radius: 8px;
+  cursor: pointer;
   font-size: 1.1rem;
   font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
   text-align: left;
-  width: 100%;
+  transition: background-color 0.2s, border-color 0.2s;
 }
-
 .wallet-option:hover {
-  background-color: #333842;
-  border-color: #61dafb;
+  background-color: #555;
+  border-color: #777;
 }
 
+.wallet-option span {
+  flex-grow: 1;
+}
 
-.disconnect-button, .switch-button, .launch-button {
+.disconnect-button {
+  background-color: #f44336;
+  color: white;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
   border: none;
-  border-radius: 20px;
-  padding: 10px 25px;
+  transition: background-color 0.3s;
+}
+.disconnect-button:hover {
+  background-color: #d32f2f;
+}
+
+/* Main Navigation Tabs */
+.main-nav {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+  background-color: #383838;
+  border-radius: 8px;
+  padding: 5px;
+}
+
+.main-nav button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background-color: transparent;
+  color: #a0a0a0;
   font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  border-radius: 6px;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-.launch-button {
-  background-color: #61dafb;
-  color: #1a1a1a;
+.main-nav button.active {
+  background-color: #5a5a5a;
+  color: #ffffff;
 }
-.launch-button:hover {
-  background-color: #88eaff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(97, 218, 251, 0.3);
+.main-nav button:not(.active):hover {
+    background-color: #4a4a4a;
 }
 
-.disconnect-button, .switch-button {
-  background-color: #444a57;
-  color: #f0f0f0;
-}
-
-.disconnect-button:hover, .switch-button:hover {
-  background-color: #555c68;
-}
-
-
-/* Payment Terminal Styles */
-.actions-container {
-  padding: 0;
-}
-
+/* Payment Terminal Styling */
 .terminal-tabs {
   display: flex;
-  border-bottom: 1px solid #444a57;
+  margin-bottom: 20px;
+  background-color: #2c2c2c;
+  border-radius: 8px;
 }
-
 .terminal-tabs button {
   flex: 1;
-  padding: 15px;
+  padding: 12px;
   border: none;
   background-color: transparent;
-  color: #aaa;
+  color: #a0a0a0;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  border-radius: 10px 10px 0 0;
+  border-radius: 8px;
+  transition: background-color 0.3s, color 0.3s;
 }
-
 .terminal-tabs button.active {
-  background-color: #333842;
-  color: #61dafb;
-  border-bottom: 2px solid #61dafb;
+  background-color: #4a4a4a;
+  color: #fff;
 }
 
-.terminal-body {
-  padding: 25px;
+.terminal-body h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #e0e0e0;
 }
 
 .amount-input-container {
   display: flex;
-  align-items: center;
-  background-color: #282c34;
-  border-radius: 8px;
-  padding: 5px;
-  margin: 15px 0 25px 0;
+  gap: 10px;
+  margin-bottom: 20px;
 }
-
-.amount-input {
-  flex-grow: 1;
-  background: none;
-  border: none;
+.amount-input, .currency-select {
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #5a5a5a;
+  background-color: #2c2c2c;
   color: #f0f0f0;
-  font-size: 1.8rem;
-  padding: 10px;
-  outline: none;
+  font-size: 1rem;
+}
+.amount-input {
   width: 70%;
 }
-
-.currency-select, .currency-display {
-  padding: 0 15px;
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: #aaa;
-}
 .currency-select {
-  background-color: #333842;
-  border: none;
+  width: 30%;
+}
+.currency-display {
+  width: 30%;
+  padding: 12px;
   border-radius: 6px;
-  height: 40px;
-}
-.currency-select:focus {
-  outline: none;
-}
-
-
-/* Transaction History Styles */
-.history-container {
-  text-align: left;
-}
-
-.history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-top: 15px;
-}
-
-.history-list-placeholder p {
-  color: #aaa;
-  font-style: italic;
-}
-
-.history-item {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 15px;
-  background-color: #282c34;
-  border-radius: 8px;
-  border: 1px solid #444a57;
-}
-
-.history-item-details {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.history-item-title {
-  font-weight: 500;
+  background-color: #2c2c2c;
   color: #f0f0f0;
+  font-size: 1rem;
+  text-align: center;
 }
 
-.history-item-id {
-  font-size: 0.8rem;
-  color: #aaa;
-  font-family: monospace;
-}
-
-.history-item-amount {
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.history-item-amount span {
-  font-weight: bold;
+.launch-button {
+  width: 100%;
+  padding: 15px;
   font-size: 1.1rem;
+  font-weight: bold;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.launch-button:hover {
+  background-color: #0056b3;
 }
 
-.amount-positive {
-  color: #4caf50;
+/* Transaction History */
+.transaction-history {
+    background-color: #383838;
+    padding: 25px;
+    border-radius: 10px;
+    border: 1px solid #4a4a4a;
 }
 
-.amount-negative {
-  color: #ff6b6b;
+.transaction-history h2 {
+    margin-top: 0;
+    color: #e0e0e0;
 }
 
-.history-item-explorer {
-  font-size: 0.75rem;
-  color: #61dafb;
-  text-decoration: none;
-  margin-top: 4px;
+.transaction-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
 }
 
-.history-item-explorer:hover {
-  text-decoration: underline;
+.transaction-item {
+    background-color: #4a4a4a;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 5px solid;
+}
+.transaction-item.payment {
+    border-color: #4caf50; /* Green for payments */
+}
+.transaction-item.withdrawal {
+    border-color: #f44336; /* Red for withdrawals */
+}
+
+.transaction-details p {
+    margin: 4px 0;
+    font-size: 0.9rem;
+    color: #ccc;
+}
+
+.transaction-details strong {
+    color: #fff;
+}
+
+.transaction-id {
+    font-family: monospace;
+    font-size: 0.8rem;
+    word-break: break-all;
+}
+.no-transactions {
+    color: #a0a0a0;
+}
+
+/* General Messages */
+.loading-container, .status-message, .error-message {
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.loading-container {
+  background-color: #4a4a4a;
+  color: #e0e0e0;
+}
+
+.status-message {
+  background-color: #2e7d32;
+  color: #fff;
+}
+
+.error-message {
+  background-color: #c62828;
+  color: #fff;
 }
 
