@@ -28,7 +28,13 @@ function App() {
         if (!serverConfig.walletConnectProjectId || !serverConfig.transakApiKey || !serverConfig.transakEnvironment) {
           throw new Error('Configuration from server is missing required keys.');
         }
-
+        // Define metadata for WalletConnect to display custom branding
+        const metadata = {
+          name: 'TimaxPay Merchant Terminal',
+          description: 'Connect your wallet to the TimaxPay Merchant Terminal.',
+          url: 'https://merch.timaxpay.com',
+         icons: ['https://www.timaxpay.com/wp-content/uploads/2018/12/Timax-logo-blue.png']
+        };
         const wagmiConfig = createConfig({
           chains: [polygon],
           connectors: [
