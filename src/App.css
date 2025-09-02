@@ -94,7 +94,6 @@ body {
   color: #fff;
 }
 
-/* New styles for the text-based wallet list */
 .wallet-text-list {
   display: flex;
   flex-direction: column;
@@ -119,6 +118,31 @@ body {
   background-color: #444;
   transform: translateY(-2px);
   border-color: #555;
+}
+
+/* New styles for the separator and create button */
+.wallet-separator {
+    border: none;
+    height: 1px;
+    background-color: #444;
+    margin: 25px 0;
+}
+
+.create-wallet-button {
+    background: none;
+    border: none;
+    color: #3498db;
+    font-size: 1em;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 10px;
+    display: inline-block;
+    transition: color 0.2s;
+}
+
+.create-wallet-button:hover {
+    color: #5dade2;
 }
 
 

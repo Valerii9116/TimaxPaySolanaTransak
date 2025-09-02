@@ -44,7 +44,6 @@ function WalletConnector({ onConnect, selectedChain, selectedStablecoin }) {
     ? connectors.filter(c => c.name !== 'Injected')
     : connectors;
   
-  // Sort connectors to your preferred order
   const sortedConnectors = [...filteredConnectors].sort((a, b) => {
     const preferredOrder = ['MetaMask', 'WalletConnect', 'Coinbase Wallet', 'Browser Wallet'];
     const indexA = preferredOrder.indexOf(a.name);
@@ -80,9 +79,9 @@ function WalletConnector({ onConnect, selectedChain, selectedStablecoin }) {
   }
 
   return (
+    // --- Redesigned connection view based on the screenshot ---
     <div className="connect-container">
         <h3>Connect a Wallet</h3>
-        {/* Redesigned text-only button list */}
         <div className="wallet-text-list">
             {sortedConnectors.map((connector) => (
               <button
@@ -94,6 +93,15 @@ function WalletConnector({ onConnect, selectedChain, selectedStablecoin }) {
               </button>
             ))}
         </div>
+        <hr className="wallet-separator" />
+        <a 
+            href="https://metamask.io/download/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="create-wallet-button"
+        >
+            Create a new wallet
+        </a>
       {error && <p className="error-message">{error.message}</p>}
     </div>
   );
