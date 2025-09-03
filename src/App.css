@@ -120,7 +120,6 @@ body {
   border-color: #555;
 }
 
-/* New styles for the separator and create button */
 .wallet-separator {
     border: none;
     height: 1px;
@@ -131,9 +130,9 @@ body {
 .create-wallet-button {
     background: none;
     border: none;
-    color: #3498db;
+    color: #f6851b; 
     font-size: 1em;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     text-decoration: none;
     padding: 10px;
@@ -142,7 +141,7 @@ body {
 }
 
 .create-wallet-button:hover {
-    color: #5dade2;
+    color: #e4751f;
 }
 
 
@@ -207,35 +206,6 @@ body {
 }
 
 
-/* Main Navigation & Content Area */
-.main-nav {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.main-nav button {
-  padding: 10px 20px;
-  font-size: 1em;
-  font-weight: 600;
-  border: 1px solid #444;
-  background-color: #333;
-  color: #a0a0a0;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.main-nav button:hover {
-  background-color: #444;
-  color: #fff;
-}
-.main-nav button.active {
-  background-color: #3498db;
-  color: #fff;
-  border-color: #3498db;
-}
-
 /* Payment Terminal Styles */
 .terminal-tabs {
   display: flex;
@@ -249,7 +219,7 @@ body {
   background: none;
   color: #a0a0a0;
   cursor: pointer;
-  font-size: 1em;
+  font-size: 0.95em;
   font-weight: 600;
   border-bottom: 3px solid transparent;
   transition: all 0.2s;
@@ -341,33 +311,108 @@ body {
     cursor: not-allowed;
 }
 
+
+/* --- Stablecoin Payment Request Styles --- */
+.stablecoin-payment-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.stablecoin-payment-view h3 {
+  margin-top: 0;
+}
+.payment-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1e1e1e;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 1.1em;
+}
+.crypto-amount-display {
+  font-weight: bold;
+  color: #2ecc71;
+}
+.qr-code-container {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  display: inline-block;
+  margin: 0 auto;
+}
+.qr-placeholder {
+    width: 200px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1e1e1e;
+    text-align: center;
+    font-size: 0.9em;
+}
+
+.payment-address-details {
+  text-align: center;
+}
+.payment-address-details p {
+  margin: 0 0 10px 0;
+  font-size: 0.9em;
+  color: #a0a0a0;
+}
+.address-bar {
+  display: flex;
+  background-color: #1e1e1e;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 5px;
+  align-items: center;
+}
+.address-text {
+  flex-grow: 1;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 0.9em;
+  color: #c0c0c0;
+  word-break: break-all;
+  text-align: left;
+}
+.copy-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-weight: 600;
+}
+.copy-button:hover {
+  background-color: #2980b9;
+}
+
+
 /* --- Mobile Responsiveness --- */
 @media (max-width: 640px) {
   .App {
     padding: 1rem 0.5rem;
   }
-
   .app-container {
     padding: 15px;
   }
-
   .App-header h1 {
     font-size: 1.8em;
   }
-
   .subtitle {
     font-size: 1em;
   }
-
   .step-card {
     padding: 20px 15px;
   }
-  
   .wallet-text-button {
     padding: 12px;
     font-size: 1em;
   }
-
   .wallet-info-connected {
     flex-direction: column;
     align-items: stretch;
@@ -379,7 +424,6 @@ body {
   .wallet-actions {
     justify-content: center;
   }
-
   .network-selectors {
     flex-direction: row;
     gap: 10px;
@@ -387,20 +431,36 @@ body {
   .selector-group {
     flex: 1;
   }
-
   .amount-input {
     font-size: 1.3em;
     padding: 12px;
   }
-
   .currency-select {
     padding: 12px;
     font-size: 0.9em;
   }
-
   .launch-button {
     padding: 15px;
     font-size: 1.1em;
+  }
+  .terminal-tabs button {
+    font-size: 0.8em;
+  }
+  .payment-summary {
+    font-size: 1em;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .qr-code-container {
+    padding: 15px;
+  }
+  .qr-code-container > canvas {
+    width: 150px !important;
+    height: 150px !important;
+  }
+  .qr-placeholder {
+    width: 150px;
+    height: 150px;
   }
 }
 

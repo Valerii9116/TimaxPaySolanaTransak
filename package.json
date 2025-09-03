@@ -5,7 +5,9 @@
   "dependencies": {
     "@tanstack/react-query": "^5.45.1",
     "@transak/transak-sdk": "^1.2.0",
+    "qrcode.react": "^3.1.0",
     "react": "^18.3.1",
+    "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
     "viem": "^2.13.7",
@@ -38,4 +40,6 @@
   },
   "proxy": "http://localhost:7071"
 }
+
+    
 

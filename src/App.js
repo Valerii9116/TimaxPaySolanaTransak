@@ -16,7 +16,6 @@ function App() {
   const [merchantAddress, setMerchantAddress] = useState(null);
   const [chain, setChain] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
   const [selectedChain, setSelectedChain] = useState(polygon); 
   const [selectedStablecoin, setSelectedStablecoin] = useState('USDC');
 
@@ -29,18 +28,15 @@ function App() {
           throw new Error(`API Error: ${response.statusText} (Status: ${response.status})`);
         }
         const serverConfig = await response.json();
-
         if (!serverConfig.walletConnectProjectId || !serverConfig.transakApiKey || !serverConfig.transakEnvironment) {
           throw new Error('Configuration from server is missing required keys.');
         }
-
         const metadata = {
           name: 'TimaxPay Merchant Terminal',
           description: 'Connect your wallet.',
           url: 'https://merch.timaxpay.com',
           icons: ['https://merch.timaxpay.com/logo512.png']
         };
-
         const wagmiConfig = createConfig({
           chains: SUPPORTED_CHAINS,
           connectors: [
@@ -52,13 +48,11 @@ function App() {
           ],
           transports: SUPPORTED_CHAINS.reduce((obj, chain) => ({ ...obj, [chain.id]: http() }), {}),
         });
-
         setConfig({
           wagmi: wagmiConfig,
           transakApiKey: serverConfig.transakApiKey,
           transakEnvironment: serverConfig.transakEnvironment
         });
-
       } catch (error) {
         console.error("Config fetch error:", error);
         setStatus(`Error: ${error.message}`);
@@ -107,7 +101,9 @@ function App() {
             selectedStablecoin={selectedStablecoin}
           />
         </div>
-        
+        {isWrongNetwork && (
+            <p className="error-message">Your wallet is on the wrong network. Please use the button above to switch to {selectedChain.name}.</p>
+        )}
         <PaymentTerminal
             apiKey={config.transakApiKey}
             environment={config.transakEnvironment}

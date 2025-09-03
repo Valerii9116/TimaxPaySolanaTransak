@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Transak from '@transak/transak-sdk';
 import { SUPPORTED_CHAINS, SUPPORTED_STABLECOINS, TRANSAK_NETWORK_MAP, STABLECOIN_ADDRESSES } from '../config';
+import StablecoinPaymentRequest from './StablecoinPaymentRequest'; // Import the new component
 
 function PaymentTerminal({ 
     apiKey, 
@@ -11,11 +12,12 @@ function PaymentTerminal({
     setSelectedChain,
     selectedStablecoin,
     setSelectedStablecoin,
-    isInteractionDisabled // New prop to control button state
+    isInteractionDisabled
 }) {
   const [fiatCurrency, setFiatCurrency] = useState('GBP');
   const [amount, setAmount] = useState('20.00');
-  const [terminalMode, setTerminalMode] = useState('PAYMENT');
+  // Add a new mode for direct stablecoin payments
+  const [terminalMode, setTerminalMode] = useState('FIAT_PAYMENT'); // FIAT_PAYMENT, WITHDRAW, STABLECOIN_PAYMENT
 
   const launchTransak = () => {
     if (parseFloat(amount) < 20) {
@@ -23,9 +25,8 @@ function PaymentTerminal({
       return;
     }
 
-    const isBuyFlow = terminalMode === 'PAYMENT';
+    const isBuyFlow = terminalMode === 'FIAT_PAYMENT';
     const transakNetwork = TRANSAK_NETWORK_MAP[selectedChain.id];
-
     if (!transakNetwork) {
         setStatus(`Error: The selected network "${selectedChain.name}" is not supported by the payment provider.`);
         return;
@@ -51,8 +52,8 @@ function PaymentTerminal({
     });
 
     transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (orderData) => {
-      setStatus('Success! The transaction was completed.');
-      setTimeout(() => transak.close(), 3000);
+        setStatus('Success! The transaction was completed.');
+        setTimeout(() => transak.close(), 3000);
     });
     transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, () => {
       setStatus('Transaction failed.');
@@ -80,11 +81,59 @@ function PaymentTerminal({
   const availableStablecoins = SUPPORTED_STABLECOINS.filter(
     coin => !!STABLECOIN_ADDRESSES[selectedChain.id]?.[coin.symbol]
   );
+  
+  // Conditionally render the correct terminal view based on the mode
+  const renderTerminalContent = () => {
+    if (terminalMode === 'STABLECOIN_PAYMENT') {
+        return (
+            <StablecoinPaymentRequest
+                selectedChain={selectedChain}
+                selectedStablecoin={selectedStablecoin}
+                merchantAddress={merchantAddress}
+                setStatus={setStatus}
+            />
+        );
+    }
+    
+    // Default to the Transak-based payment/withdrawal view
+    return (
+        <div className="terminal-body">
+            <h3>{terminalMode === 'FIAT_PAYMENT' ? 'Enter Amount to Charge' : 'Enter Amount to Withdraw'}</h3>
+            <div className="amount-input-container">
+            <input 
+                type="number" 
+                className="amount-input" 
+                value={amount}
+                min="20"
+                onChange={(e) => setAmount(e.target.value)}
+            />
+            <select className="currency-select" value={fiatCurrency} onChange={(e) => setFiatCurrency(e.target.value)}>
+                <option value="GBP">GBP</option>
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+            </select>
+            </div>
+            <button 
+            onClick={launchTransak} 
+            className="launch-button" 
+            disabled={availableStablecoins.length === 0 || isInteractionDisabled}
+            >
+            {isInteractionDisabled 
+                ? 'Switch Network to Continue' 
+                : terminalMode === 'FIAT_PAYMENT' 
+                    ? `Charge ${amount} ${fiatCurrency}` 
+                    : `Withdraw ${amount} ${selectedStablecoin} to ${fiatCurrency}`
+            }
+            </button>
+      </div>
+    );
+  }
 
   return (
     <div className="step-card actions-container">
       <div className="terminal-tabs">
-        <button onClick={() => setTerminalMode('PAYMENT')} className={terminalMode === 'PAYMENT' ? 'active' : ''}>Accept Payment</button>
+        <button onClick={() => setTerminalMode('FIAT_PAYMENT')} className={terminalMode === 'FIAT_PAYMENT' ? 'active' : ''}>Accept Payment</button>
+        <button onClick={() => setTerminalMode('STABLECOIN_PAYMENT')} className={terminalMode === 'STABLECOIN_PAYMENT' ? 'active' : ''}>Accept Stablecoin</button>
         <button onClick={() => setTerminalMode('WITHDRAW')} className={terminalMode === 'WITHDRAW' ? 'active' : ''}>Withdraw Funds</button>
       </div>
       
@@ -107,35 +156,7 @@ function PaymentTerminal({
         </div>
       </div>
 
-      <div className="terminal-body">
-        <h3>{terminalMode === 'PAYMENT' ? 'Enter Amount to Charge' : 'Enter Amount to Withdraw'}</h3>
-        <div className="amount-input-container">
-          <input 
-            type="number" 
-            className="amount-input" 
-            value={amount}
-            min="20"
-            onChange={(e) => setAmount(e.target.value)}
-          />
-          <select className="currency-select" value={fiatCurrency} onChange={(e) => setFiatCurrency(e.target.value)}>
-            <option value="GBP">GBP</option>
-            <option value="EUR">EUR</option>
-            <option value="USD">USD</option>
-          </select>
-        </div>
-        <button 
-          onClick={launchTransak} 
-          className="launch-button" 
-          disabled={availableStablecoins.length === 0 || isInteractionDisabled}
-        >
-          {isInteractionDisabled 
-              ? 'Switch Network to Continue' 
-              : terminalMode === 'PAYMENT' 
-                  ? `Charge ${amount} ${fiatCurrency}` 
-                  : `Withdraw ${amount} ${selectedStablecoin} to ${fiatCurrency}`
-          }
-        </button>
-      </div>
+      {renderTerminalContent()}
     </div>
   );
 }
