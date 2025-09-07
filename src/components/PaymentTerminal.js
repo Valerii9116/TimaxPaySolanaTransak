@@ -145,7 +145,7 @@ function PaymentTerminal({
       <div className="terminal-tabs">
         <button onClick={() => setTerminalMode('FIAT_PAYMENT')} className={terminalMode === 'FIAT_PAYMENT' ? 'active' : ''}>Accept Payment</button>
         <button onClick={() => setTerminalMode('STABLECOIN_PAYMENT')} className={terminalMode === 'STABLECOIN_PAYMENT' ? 'active' : ''}>Accept Stablecoin</button>
-        <button onClick={() => setTerminalMode('SEND_STABLECOIN')} className={terminalMode === 'SEND_STABLECOIN' ? 'active' : ''}>Send Stablecoin</button>
+        <button onClick={() => setTerminalMode('SELL_STABLECOIN')} className={terminalMode === 'SELL_STABLECOIN' ? 'active' : ''}>Send Stablecoin</button>
         <button onClick={() => setTerminalMode('WITHDRAW')} className={terminalMode === 'WITHDRAW' ? 'active' : ''}>Withdraw Funds</button>
       </div>
 
