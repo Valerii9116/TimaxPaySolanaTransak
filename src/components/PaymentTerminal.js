@@ -1,175 +1,136 @@
 import React, { useState } from 'react';
 import Transak from '@transak/transak-sdk';
-import { SUPPORTED_CHAINS, SUPPORTED_STABLECOINS, TRANSAK_NETWORK_MAP, STABLECOIN_ADDRESSES } from '../config';
-import StablecoinPaymentRequest from './StablecoinPaymentRequest';
-import SellStablecoin from './SellStablecoin';
 
-function PaymentTerminal({
-    apiKey,
-    environment,
-    merchantAddress,
-    setStatus,
-    selectedChain,
-    setSelectedChain,
-    selectedStablecoin,
-    setSelectedStablecoin,
-    isInteractionDisabled
-}) {
+// --- CONFIG & COMPONENTS ---
+import { SUPPORTED_CHAINS, ASSET_ADDRESSES, TRANSAK_NETWORK_MAP } from '../config';
+import AcceptCrypto from './AcceptCrypto';
+import SendCrypto from './SendCrypto';
+
+function PaymentTerminal(props) {
+  const [mode, setMode] = useState('ACCEPT_CRYPTO');
+  const { selectedChain, setSelectedChain, selectedAsset, setSelectedAsset, apiKey, environment, merchantAddress, setStatus } = props;
+  
+  const availableAssets = Object.keys(ASSET_ADDRESSES[selectedChain.id] || {});
+  const [fiatAmount, setFiatAmount] = useState('20.00');
+  const [cryptoAmount, setCryptoAmount] = useState('100.00');
   const [fiatCurrency, setFiatCurrency] = useState('GBP');
-  const [amount, setAmount] = useState('20.00');
-  const [terminalMode, setTerminalMode] = useState('FIAT_PAYMENT'); // FIAT_PAYMENT, WITHDRAW, STABLECOIN_PAYMENT, SELL_STABLECOIN
-
-  const launchTransak = () => {
-    if (parseFloat(amount) < 20 && terminalMode !== 'SELL_STABLECOIN') {
-      setStatus('Error: Minimum amount is 20.');
-      return;
-    }
-
-    const isBuyFlow = terminalMode === 'FIAT_PAYMENT';
-    const transakNetwork = TRANSAK_NETWORK_MAP[selectedChain.id];
-    if (!transakNetwork) {
-        setStatus(`Error: The selected network "${selectedChain.name}" is not supported by the payment provider.`);
-        return;
-    }
-
-    setStatus(`Initializing ${isBuyFlow ? 'Payment' : 'Withdrawal'}...`);
-
-    const transak = new Transak({
-      apiKey: apiKey,
-      environment: environment,
-      productsAvailed: isBuyFlow ? 'BUY' : 'SELL',
-      fiatCurrency: fiatCurrency,
-      cryptoCurrencyCode: selectedStablecoin,
-      network: transakNetwork,
-      walletAddress: merchantAddress,
-      fiatAmount: isBuyFlow ? parseFloat(amount) : undefined,
-      cryptoAmount: isBuyFlow ? undefined : parseFloat(amount),
-      partnerCustomerId: merchantAddress,
-      disableWalletAddressForm: true,
-      hideMenu: true,
-      widgetHeight: '650px',
-      widgetWidth: '100%',
-    });
-
-    transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (orderData) => {
-        setStatus('Success! The transaction was completed.');
-        setTimeout(() => transak.close(), 3000);
-    });
-    transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, () => {
-      setStatus('Transaction failed.');
-      setTimeout(() => transak.close(), 3000);
-    });
-    transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, () => {
-      setStatus('Widget closed by user.');
-    });
-
-    transak.init();
-  };
 
   const handleNetworkChange = (e) => {
-    const chainId = parseInt(e.target.value, 10);
-    const newChain = SUPPORTED_CHAINS.find(c => c.id === chainId);
+    const newChain = SUPPORTED_CHAINS.find(c => String(c.id) === e.target.value);
     if (newChain) {
-        setSelectedChain(newChain);
-        const availableCoins = SUPPORTED_STABLECOINS.filter(c => !!STABLECOIN_ADDRESSES[newChain.id]?.[c.symbol]);
-        if (!availableCoins.some(c => c.symbol === selectedStablecoin)) {
-            setSelectedStablecoin(availableCoins[0]?.symbol || '');
-        }
+      setSelectedChain(newChain);
+      // Automatically select the first available asset for the new chain
+      const firstAsset = Object.keys(ASSET_ADDRESSES[newChain.id] || {})[0];
+      setSelectedAsset(firstAsset);
     }
   };
 
-  const availableStablecoins = SUPPORTED_STABLECOINS.filter(
-    coin => !!STABLECOIN_ADDRESSES[selectedChain.id]?.[coin.symbol]
-  );
+  const launchTransak = () => {
+    const isSellFlow = mode === 'WITHDRAW';
+    const transakConfig = {
+      apiKey,
+      environment,
+      productsAvailed: isSellFlow ? 'SELL' : 'BUY',
+      fiatCurrency,
+      cryptoCurrencyCode: selectedAsset,
+      network: TRANSAK_NETWORK_MAP[selectedChain.id],
+      walletAddress: isSellFlow ? undefined : merchantAddress,
+      walletAddressToSell: isSellFlow ? merchantAddress : undefined,
+      fiatAmount: isSellFlow ? undefined : parseFloat(fiatAmount),
+      cryptoAmount: isSellFlow ? parseFloat(cryptoAmount) : undefined,
+      disableWalletAddressForm: !isSellFlow,
+      hideMenu: true,
+    };
 
-  const renderTerminalContent = () => {
-    if (terminalMode === 'STABLECOIN_PAYMENT') {
+    setStatus(`Initializing ${isSellFlow ? 'Withdrawal' : 'Payment'}...`);
+    const transak = new Transak(transakConfig);
+    transak.init();
+
+    transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, () => {
+      setStatus(`Success! The ${isSellFlow ? 'withdrawal' : 'payment'} was completed.`);
+      transak.close();
+    });
+
+    transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, () => {
+      setStatus(`The ${isSellFlow ? 'withdrawal' : 'payment'} failed.`);
+      transak.close();
+    });
+  };
+
+  const renderContent = () => {
+    switch(mode) {
+      case 'ACCEPT_CRYPTO':
+        return <AcceptCrypto {...props} />;
+      case 'SEND_CRYPTO':
+        return <SendCrypto {...props} />;
+      case 'FIAT_PAYMENT':
         return (
-            <StablecoinPaymentRequest
-                selectedChain={selectedChain}
-                selectedStablecoin={selectedStablecoin}
-                merchantAddress={merchantAddress}
-                setStatus={setStatus}
-            />
-        );
-    }
-
-    if (terminalMode === 'SELL_STABLECOIN') {
-        return (
-            <SellStablecoin
-                selectedChain={selectedChain}
-                selectedStablecoin={selectedStablecoin}
-                merchantAddress={merchantAddress}
-                setStatus={setStatus}
-                isInteractionDisabled={isInteractionDisabled}
-            />
-        );
-    }
-
-    // Default to the Transak-based payment/withdrawal view
-    return (
-        <div className="terminal-body">
-            <h3>{terminalMode === 'FIAT_PAYMENT' ? 'Enter Amount to Charge' : 'Enter Amount to Withdraw'}</h3>
+          <div className="terminal-body">
+            <h3>Accept Fiat Payment</h3>
             <div className="amount-input-container">
-            <input
-                type="number"
-                className="amount-input"
-                value={amount}
-                min="20"
-                onChange={(e) => setAmount(e.target.value)}
-            />
-            <select className="currency-select" value={fiatCurrency} onChange={(e) => setFiatCurrency(e.target.value)}>
+              <input type="number" className="amount-input" value={fiatAmount} min="20" onChange={e => setFiatAmount(e.target.value)} />
+              <select className="currency-select" value={fiatCurrency} onChange={e => setFiatCurrency(e.target.value)}>
                 <option value="GBP">GBP</option>
                 <option value="EUR">EUR</option>
                 <option value="USD">USD</option>
-            </select>
+              </select>
             </div>
-            <button
-            onClick={launchTransak}
-            className="launch-button"
-            disabled={availableStablecoins.length === 0 || isInteractionDisabled}
-            >
-            {isInteractionDisabled
-                ? 'Switch Network to Continue'
-                : terminalMode === 'FIAT_PAYMENT'
-                    ? `Charge ${amount} ${fiatCurrency}`
-                    : `Withdraw ${amount} ${selectedStablecoin} to ${fiatCurrency}`
-            }
+            <button onClick={launchTransak} className="launch-button">
+              Charge {fiatAmount} {fiatCurrency}
             </button>
-      </div>
-    );
+          </div>
+        );
+      case 'WITHDRAW':
+        return (
+          <div className="terminal-body">
+            <h3>Withdraw {selectedAsset} to Fiat</h3>
+            <div className="amount-input-container">
+              <input type="number" className="amount-input" value={cryptoAmount} onChange={e => setCryptoAmount(e.target.value)} placeholder="0.00" />
+              <select className="currency-select" value={fiatCurrency} onChange={e => setFiatCurrency(e.target.value)}>
+                <option value="GBP">GBP</option>
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+              </select>
+            </div>
+            <button onClick={launchTransak} className="launch-button">
+              Withdraw {cryptoAmount} {selectedAsset}
+            </button>
+          </div>
+        );
+      default:
+        return null;
+    }
   }
 
   return (
-    <div className="step-card actions-container">
+    <div className="step-card">
       <div className="terminal-tabs">
-        <button onClick={() => setTerminalMode('FIAT_PAYMENT')} className={terminalMode === 'FIAT_PAYMENT' ? 'active' : ''}>Accept Payment</button>
-        <button onClick={() => setTerminalMode('STABLECOIN_PAYMENT')} className={terminalMode === 'STABLECOIN_PAYMENT' ? 'active' : ''}>Accept Stablecoin</button>
-        <button onClick={() => setTerminalMode('SELL_STABLECOIN')} className={terminalMode === 'SELL_STABLECOIN' ? 'active' : ''}>Send Stablecoin</button>
-        <button onClick={() => setTerminalMode('WITHDRAW')} className={terminalMode === 'WITHDRAW' ? 'active' : ''}>Withdraw Funds</button>
+        <button onClick={() => setMode('FIAT_PAYMENT')} className={mode === 'FIAT_PAYMENT' ? 'active' : ''}>Accept Fiat</button>
+        <button onClick={() => setMode('ACCEPT_CRYPTO')} className={mode === 'ACCEPT_CRYPTO' ? 'active' : ''}>Accept Crypto</button>
+        <button onClick={() => setMode('SEND_CRYPTO')} className={mode === 'SEND_CRYPTO' ? 'active' : ''}>Send Crypto</button>
+        <button onClick={() => setMode('WITHDRAW')} className={mode === 'WITHDRAW' ? 'active' : ''}>Withdraw</button>
       </div>
-
       <div className="network-selectors">
         <div className="selector-group">
-            <label htmlFor="network-select">Network</label>
-            <select id="network-select" value={selectedChain.id} onChange={handleNetworkChange}>
-                {SUPPORTED_CHAINS.map(chain => (
-                    <option key={chain.id} value={chain.id}>{chain.name}</option>
-                ))}
-            </select>
+          <label htmlFor="network-select">Network</label>
+          <select id="network-select" value={selectedChain.id} onChange={handleNetworkChange}>
+            {SUPPORTED_CHAINS.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
         </div>
         <div className="selector-group">
-             <label htmlFor="stablecoin-select">Asset</label>
-            <select id="stablecoin-select" value={selectedStablecoin} onChange={(e) => setSelectedStablecoin(e.target.value)} disabled={availableStablecoins.length === 0}>
-                {availableStablecoins.length > 0 ? availableStablecoins.map(coin => (
-                    <option key={coin.symbol} value={coin.symbol}>{coin.symbol}</option>
-                )) : <option>Not Available</option>}
-            </select>
+          <label htmlFor="asset-select">Asset</label>
+          <select id="asset-select" value={selectedAsset} onChange={e => setSelectedAsset(e.target.value)} disabled={availableAssets.length === 0}>
+             {availableAssets.length > 0
+               ? availableAssets.map(a => <option key={a} value={a}>{a}</option>)
+               : <option>Unavailable</option>
+             }
+          </select>
         </div>
       </div>
-
-      {renderTerminalContent()}
+      {renderContent()}
     </div>
   );
-}
+};
+
 export default PaymentTerminal;
+

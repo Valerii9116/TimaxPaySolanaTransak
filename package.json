@@ -1,24 +1,40 @@
 {
-  "name": "timaxpay-terminal",
+  "name": "timaxpay-solana",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@tanstack/react-query": "^5.45.1",
+    "@solana/spl-token": "^0.4.8",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-react-ui": "^0.9.35",
+    "@solana/wallet-adapter-wallets": "^0.19.32",
+    "@solana/web3.js": "^1.95.0",
+    "@tanstack/react-query": "^5.51.15",
     "@transak/transak-sdk": "^1.2.0",
+    "@web3modal/wagmi": "^5.0.10",
+    "assert": "^2.1.0",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.0",
+    "html5-qrcode": "^2.3.8",
+    "https-browserify": "^1.0.0",
+    "os-browserify": "^0.3.0",
+    "process": "^0.11.10",
     "qrcode.react": "^3.1.0",
     "react": "^18.3.1",
+    "react-app-rewired": "^2.2.1",
     "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "^18.3.1",
-    "react-qr-reader": "^3.0.0-beta-1",
     "react-scripts": "5.0.1",
-    "viem": "^2.13.7",
-    "wagmi": "^2.9.10",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "url": "^0.11.4",
+    "viem": "^2.17.4",
+    "wagmi": "^2.12.0",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -41,3 +57,4 @@
   },
   "proxy": "http://localhost:7071"
 }
+

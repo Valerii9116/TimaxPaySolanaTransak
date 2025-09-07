@@ -1,16 +1,15 @@
-/* General App Styles */
-/* Universal box-sizing for more predictable layouts */
+/* --- Root Styles & General Layout --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://unpkg.com/@solana/wallet-adapter-react-ui@latest/styles.css');
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   background-color: #121212;
   color: #e0e0e0;
 }
@@ -26,23 +25,20 @@ body {
   margin: 0 auto;
   background-color: #1e1e1e;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
   padding: 30px;
-}
-
-.App-header {
-  margin-bottom: 30px;
 }
 
 .App-header h1 {
   font-size: 2.2em;
-  color: #ffffff;
+  color: #fff;
   margin-bottom: 5px;
 }
 
 .subtitle {
   color: #a0a0a0;
   font-size: 1.1em;
+  margin-top: 0;
 }
 
 .step-card {
@@ -53,30 +49,10 @@ body {
   border: 1px solid #333;
 }
 
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 1.2em;
-  color: #a0a0a0;
-  padding: 20px;
-  text-align: center;
-}
-
-.status-message {
-  padding: 10px 15px;
-  border-radius: 6px;
-  background-color: #333;
-  color: #c0c0c0;
-  font-size: 0.95em;
-  margin-top: 20px;
-  display: inline-block;
-}
-
+/* --- Status & Error Messages --- */
 .error-message {
   color: #ff6b6b;
-  background-color: rgba(255, 107, 107, 0.1);
+  background-color: rgba(255,107,107,0.1);
   padding: 12px;
   border-radius: 8px;
   font-weight: 500;
@@ -84,68 +60,17 @@ body {
   margin-bottom: 20px;
 }
 
-
-/* --- Redesigned Wallet Connector --- */
-
-/* Connect View */
-.connect-container h3 {
-  margin-top: 0;
-  margin-bottom: 25px;
-  color: #fff;
-}
-
-.wallet-text-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.wallet-text-button {
+.status-message {
+  padding: 10px 15px;
+  border-radius: 6px;
   background-color: #333;
-  border: 1px solid #444;
-  border-radius: 8px;
-  width: 100%;
-  padding: 15px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #e0e0e0;
-  font-size: 1.1em;
-  font-weight: 500;
-  text-align: center;
+  color: #c0c0c0;
+  margin-top: 20px;
+  display: inline-block;
+  word-break: break-all;
 }
 
-.wallet-text-button:hover {
-  background-color: #444;
-  transform: translateY(-2px);
-  border-color: #555;
-}
-
-.wallet-separator {
-    border: none;
-    height: 1px;
-    background-color: #444;
-    margin: 25px 0;
-}
-
-.create-wallet-button {
-    background: none;
-    border: none;
-    color: #f6851b;
-    font-size: 1em;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    padding: 10px;
-    display: inline-block;
-    transition: color 0.2s;
-}
-
-.create-wallet-button:hover {
-    color: #e4751f;
-}
-
-
-/* Connected View (Compact Redesign) */
+/* --- Wallet Connector --- */
 .wallet-info-connected {
   display: flex;
   align-items: center;
@@ -153,33 +78,10 @@ body {
   gap: 15px;
 }
 
-.wallet-address-balance {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-}
-
 .wallet-address {
   margin: 0;
   font-size: 1.1em;
   font-weight: 500;
-}
-
-.balance-display {
-  background-color: #333;
-  padding: 4px 10px;
-  border-radius: 15px;
-  font-size: 0.9em;
-  color: #c0c0c0;
-}
-.balance-info.error {
-  color: #ff6b6b;
-}
-
-.wallet-actions {
-  display: flex;
-  gap: 10px;
 }
 
 .disconnect-button-compact, .switch-button-compact {
@@ -196,22 +98,23 @@ body {
 
 .switch-button-compact {
   background-color: #3498db;
+  margin-right: 5px;
 }
 
-.disconnect-button-compact:hover {
-  background-color: #c0392b;
-}
-.switch-button-compact:hover {
-  background-color: #2980b9;
+.wallet-adapter-button-trigger {
+  background-color: #4F46E5 !important;
+  font-family: 'Inter', sans-serif !important;
+  width: 100%;
+  border-radius: 8px !important;
 }
 
-
-/* Payment Terminal Styles */
+/* --- Payment Terminal --- */
 .terminal-tabs {
   display: flex;
   border-bottom: 1px solid #333;
   margin-bottom: 20px;
 }
+
 .terminal-tabs button {
   flex: 1;
   padding: 15px 5px;
@@ -219,14 +122,11 @@ body {
   background: none;
   color: #a0a0a0;
   cursor: pointer;
-  font-size: 0.95em;
+  font-size: 0.9em; /* Adjusted for 4 tabs */
   font-weight: 600;
   border-bottom: 3px solid transparent;
-  transition: all 0.2s;
 }
-.terminal-tabs button:hover {
-  color: #fff;
-}
+
 .terminal-tabs button.active {
   color: #3498db;
   border-bottom: 3px solid #3498db;
@@ -239,31 +139,71 @@ body {
 }
 
 .network-selectors {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 10px;
+  display: flex;
+  gap: 15px;
+  margin-bottom: 10px;
 }
 
 .selector-group {
-    display: flex;
-    flex-direction: column;
-    text-align: left;
+  flex: 1;
+  text-align: left;
 }
 
 .selector-group label {
-    margin-bottom: 5px;
-    font-size: 0.9em;
-    color: #a0a0a0;
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+  color: #a0a0a0;
 }
 
-.selector-group select {
-    padding: 12px;
-    font-size: 1em;
-    border: 1px solid #444;
-    background-color: #2a2a2a;
-    color: #fff;
-    border-radius: 8px;
+.selector-group select,
+.selector-group input {
+  width: 100%;
+  padding: 12px;
+  font-size: 1em;
+  border: 1px solid #444;
+  background-color: #2a2a2a;
+  color: #fff;
+  border-radius: 8px;
+}
+
+.address-input-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.address-input-container input {
+  flex-grow: 1;
+}
+
+.qr-scan-button {
+  background-color: #3498db;
+  border: none;
+  border-radius: 5px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 45px; /* Match input height */
+}
+
+.qr-scan-button svg {
+  width: 24px;
+  height: 24px;
+  fill: white;
+}
+
+#qr-scanner-container {
+  border: 1px solid #444;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 15px;
+}
+
+#qr-scanner-container a {
+  color: #3498db !important;
 }
 
 .amount-input-container {
@@ -271,54 +211,15 @@ body {
   gap: 10px;
 }
 
-.address-input-container {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.address-input {
-  flex: 1;
-  padding: 15px;
-  font-size: 1em;
-  border: 1px solid #444;
-  background-color: #1e1e1e;
-  color: #fff;
-  border-radius: 8px;
-}
-
-.qr-scan-button {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-
 .amount-input {
   flex: 3;
   padding: 15px;
   font-size: 1.5em;
-  border: 1px solid #444;
-  background-color: #1e1e1e;
-  color: #fff;
-  border-radius: 8px;
   text-align: right;
-  width: 60%;
 }
+
 .currency-select {
   flex: 1;
-  padding: 15px;
-  font-size: 1em;
-  border: 1px solid #444;
-  background-color: #2a2a2a;
-  color: #fff;
-  border-radius: 8px;
 }
 
 .launch-button {
@@ -330,40 +231,14 @@ body {
   font-size: 1.2em;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
 }
-.launch-button:hover {
-  background-color: #2ecc71;
-}
+
 .launch-button:disabled {
-    background-color: #555;
-    color: #999;
-    cursor: not-allowed;
+  background-color: #555;
+  color: #999;
+  cursor: not-allowed;
 }
 
-
-/* --- Stablecoin Payment Request Styles --- */
-.stablecoin-payment-view {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.stablecoin-payment-view h3 {
-  margin-top: 0;
-}
-.payment-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #1e1e1e;
-  padding: 15px;
-  border-radius: 8px;
-  font-size: 1.1em;
-}
-.crypto-amount-display {
-  font-weight: bold;
-  color: #2ecc71;
-}
 .qr-code-container {
   padding: 20px;
   background-color: #fff;
@@ -371,33 +246,16 @@ body {
   display: inline-block;
   margin: 0 auto;
 }
-.qr-placeholder {
-    width: 200px;
-    height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #1e1e1e;
-    text-align: center;
-    font-size: 0.9em;
-}
 
-.payment-address-details {
-  text-align: center;
-}
-.payment-address-details p {
-  margin: 0 0 10px 0;
-  font-size: 0.9em;
-  color: #a0a0a0;
-}
 .address-bar {
   display: flex;
+  align-items: center;
   background-color: #1e1e1e;
   border: 1px solid #444;
   border-radius: 8px;
   padding: 5px;
-  align-items: center;
 }
+
 .address-text {
   flex-grow: 1;
   padding: 10px;
@@ -405,8 +263,8 @@ body {
   font-size: 0.9em;
   color: #c0c0c0;
   word-break: break-all;
-  text-align: left;
 }
+
 .copy-button {
   background-color: #3498db;
   color: white;
@@ -414,82 +272,5 @@ body {
   padding: 10px 15px;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.2s;
-  font-weight: 600;
-}
-.copy-button:hover {
-  background-color: #2980b9;
 }
 
-
-/* --- Mobile Responsiveness --- */
-@media (max-width: 640px) {
-  .App {
-    padding: 1rem 0.5rem;
-  }
-  .app-container {
-    padding: 15px;
-  }
-  .App-header h1 {
-    font-size: 1.8em;
-  }
-  .subtitle {
-    font-size: 1em;
-  }
-  .step-card {
-    padding: 20px 15px;
-  }
-  .wallet-text-button {
-    padding: 12px;
-    font-size: 1em;
-  }
-  .wallet-info-connected {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-  .wallet-address-balance {
-    align-items: center;
-  }
-  .wallet-actions {
-    justify-content: center;
-  }
-  .network-selectors {
-    flex-direction: row;
-    gap: 10px;
-  }
-  .selector-group {
-    flex: 1;
-  }
-  .amount-input {
-    font-size: 1.3em;
-    padding: 12px;
-  }
-  .currency-select {
-    padding: 12px;
-    font-size: 0.9em;
-  }
-  .launch-button {
-    padding: 15px;
-    font-size: 1.1em;
-  }
-  .terminal-tabs button {
-    font-size: 0.8em;
-  }
-  .payment-summary {
-    font-size: 1em;
-    flex-direction: column;
-    gap: 5px;
-  }
-  .qr-code-container {
-    padding: 15px;
-  }
-  .qr-code-container > canvas {
-    width: 150px !important;
-    height: 150px !important;
-  }
-  .qr-placeholder {
-    width: 150px;
-    height: 150px;
-  }
-}
