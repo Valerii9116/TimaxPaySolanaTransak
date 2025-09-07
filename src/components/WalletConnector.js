@@ -8,13 +8,14 @@ function WalletConnector({ onConnect, selectedChain, selectedStablecoin }) {
   const { connectors, connect, error } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChain } = useSwitchChain();
-  const tokenAddress = STABLECOIN_ADDRESSES[selectedChain.id]?.[selectedStablecoin];
+  const isNative = selectedStablecoin === 'ETH';
+  const tokenAddress = isNative ? undefined : STABLECOIN_ADDRESSES[selectedChain.id]?.[selectedStablecoin];
 
   const { data: balanceData, isLoading: isBalanceLoading, isError: isBalanceError } = useBalance({
     address: address,
     chainId: selectedChain.id,
     token: tokenAddress,
-    enabled: isConnected && !!tokenAddress,
+    enabled: isConnected,
   });
 
   useEffect(() => {
@@ -25,12 +26,12 @@ function WalletConnector({ onConnect, selectedChain, selectedStablecoin }) {
 
   const renderBalance = () => {
     if (isWrongNetwork) return <span className="balance-info error">Wrong Network</span>;
-    if (!tokenAddress) return <span className="balance-info">N/A on {selectedChain.name}</span>
+    if (!isNative && !tokenAddress) return <span className="balance-info">N/A on {selectedChain.name}</span>
     if (isBalanceLoading) return <span className="balance-info">Loading...</span>;
     if (isBalanceError || !balanceData) return <span className="balance-info error">Balance Error</span>;
     return (
       <span className="balance-info">
-        {parseFloat(formatUnits(balanceData.value, balanceData.decimals)).toFixed(2)} {balanceData.symbol}
+        {parseFloat(formatUnits(balanceData.value, balanceData.decimals)).toFixed(4)} {balanceData.symbol}
       </span>
     );
   };
@@ -42,12 +43,12 @@ function WalletConnector({ onConnect, selectedChain, selectedStablecoin }) {
   const filteredConnectors = hasSpecificInjectedWallet
     ? connectors.filter(c => c.name !== 'Injected')
     : connectors;
-  
+
   const sortedConnectors = [...filteredConnectors].sort((a, b) => {
     const preferredOrder = ['MetaMask', 'WalletConnect', 'Coinbase Wallet', 'Browser Wallet'];
     const indexA = preferredOrder.indexOf(a.name);
     const indexB = preferredOrder.indexOf(b.name);
-    
+
     if (indexA === -1) return 1;
     if (indexB === -1) return -1;
     return indexA - indexB;
@@ -91,13 +92,13 @@ function WalletConnector({ onConnect, selectedChain, selectedStablecoin }) {
             ))}
       </div>
         <hr className="wallet-separator" />
-        <a 
-            href="https://metamask.io/download/" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="create-wallet-button"
+        <a
+          href="https://metamask.io/download/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="create-wallet-button"
         >
-            Create a new wallet
+          Create a new wallet
         </a>
       {error && <p className="error-message">{error.message}</p>}
     </div>
@@ -105,4 +106,3 @@ function WalletConnector({ onConnect, selectedChain, selectedStablecoin }) {
 }
 
 export default WalletConnector;
-

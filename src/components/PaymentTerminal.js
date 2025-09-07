@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import Transak from '@transak/transak-sdk';
 import { SUPPORTED_CHAINS, SUPPORTED_STABLECOINS, TRANSAK_NETWORK_MAP, STABLECOIN_ADDRESSES } from '../config';
-import StablecoinPaymentRequest from './StablecoinPaymentRequest'; // Import the new component
+import StablecoinPaymentRequest from './StablecoinPaymentRequest';
+import SellStablecoin from './SellStablecoin';
 
-function PaymentTerminal({ 
-    apiKey, 
-    environment, 
-    merchantAddress, 
-    setStatus, 
-    selectedChain, 
+function PaymentTerminal({
+    apiKey,
+    environment,
+    merchantAddress,
+    setStatus,
+    selectedChain,
     setSelectedChain,
     selectedStablecoin,
     setSelectedStablecoin,
@@ -16,11 +17,10 @@ function PaymentTerminal({
 }) {
   const [fiatCurrency, setFiatCurrency] = useState('GBP');
   const [amount, setAmount] = useState('20.00');
-  // Add a new mode for direct stablecoin payments
-  const [terminalMode, setTerminalMode] = useState('FIAT_PAYMENT'); // FIAT_PAYMENT, WITHDRAW, STABLECOIN_PAYMENT
+  const [terminalMode, setTerminalMode] = useState('FIAT_PAYMENT'); // FIAT_PAYMENT, WITHDRAW, STABLECOIN_PAYMENT, SELL_STABLECOIN
 
   const launchTransak = () => {
-    if (parseFloat(amount) < 20) {
+    if (parseFloat(amount) < 20 && terminalMode !== 'SELL_STABLECOIN') {
       setStatus('Error: Minimum amount is 20.');
       return;
     }
@@ -31,9 +31,9 @@ function PaymentTerminal({
         setStatus(`Error: The selected network "${selectedChain.name}" is not supported by the payment provider.`);
         return;
     }
-    
+
     setStatus(`Initializing ${isBuyFlow ? 'Payment' : 'Withdrawal'}...`);
-    
+
     const transak = new Transak({
       apiKey: apiKey,
       environment: environment,
@@ -44,7 +44,7 @@ function PaymentTerminal({
       walletAddress: merchantAddress,
       fiatAmount: isBuyFlow ? parseFloat(amount) : undefined,
       cryptoAmount: isBuyFlow ? undefined : parseFloat(amount),
-      partnerCustomerId: merchantAddress, 
+      partnerCustomerId: merchantAddress,
       disableWalletAddressForm: true,
       hideMenu: true,
       widgetHeight: '650px',
@@ -73,7 +73,7 @@ function PaymentTerminal({
         setSelectedChain(newChain);
         const availableCoins = SUPPORTED_STABLECOINS.filter(c => !!STABLECOIN_ADDRESSES[newChain.id]?.[c.symbol]);
         if (!availableCoins.some(c => c.symbol === selectedStablecoin)) {
-            setSelectedStablecoin(availableCoins[0]?.symbol || ''); 
+            setSelectedStablecoin(availableCoins[0]?.symbol || '');
         }
     }
   };
@@ -81,8 +81,7 @@ function PaymentTerminal({
   const availableStablecoins = SUPPORTED_STABLECOINS.filter(
     coin => !!STABLECOIN_ADDRESSES[selectedChain.id]?.[coin.symbol]
   );
-  
-  // Conditionally render the correct terminal view based on the mode
+
   const renderTerminalContent = () => {
     if (terminalMode === 'STABLECOIN_PAYMENT') {
         return (
@@ -94,15 +93,27 @@ function PaymentTerminal({
             />
         );
     }
-    
+
+    if (terminalMode === 'SELL_STABLECOIN') {
+        return (
+            <SellStablecoin
+                selectedChain={selectedChain}
+                selectedStablecoin={selectedStablecoin}
+                merchantAddress={merchantAddress}
+                setStatus={setStatus}
+                isInteractionDisabled={isInteractionDisabled}
+            />
+        );
+    }
+
     // Default to the Transak-based payment/withdrawal view
     return (
         <div className="terminal-body">
             <h3>{terminalMode === 'FIAT_PAYMENT' ? 'Enter Amount to Charge' : 'Enter Amount to Withdraw'}</h3>
             <div className="amount-input-container">
-            <input 
-                type="number" 
-                className="amount-input" 
+            <input
+                type="number"
+                className="amount-input"
                 value={amount}
                 min="20"
                 onChange={(e) => setAmount(e.target.value)}
@@ -113,15 +124,15 @@ function PaymentTerminal({
                 <option value="USD">USD</option>
             </select>
             </div>
-            <button 
-            onClick={launchTransak} 
-            className="launch-button" 
+            <button
+            onClick={launchTransak}
+            className="launch-button"
             disabled={availableStablecoins.length === 0 || isInteractionDisabled}
             >
-            {isInteractionDisabled 
-                ? 'Switch Network to Continue' 
-                : terminalMode === 'FIAT_PAYMENT' 
-                    ? `Charge ${amount} ${fiatCurrency}` 
+            {isInteractionDisabled
+                ? 'Switch Network to Continue'
+                : terminalMode === 'FIAT_PAYMENT'
+                    ? `Charge ${amount} ${fiatCurrency}`
                     : `Withdraw ${amount} ${selectedStablecoin} to ${fiatCurrency}`
             }
             </button>
@@ -134,9 +145,10 @@ function PaymentTerminal({
       <div className="terminal-tabs">
         <button onClick={() => setTerminalMode('FIAT_PAYMENT')} className={terminalMode === 'FIAT_PAYMENT' ? 'active' : ''}>Accept Payment</button>
         <button onClick={() => setTerminalMode('STABLECOIN_PAYMENT')} className={terminalMode === 'STABLECOIN_PAYMENT' ? 'active' : ''}>Accept Stablecoin</button>
+        <button onClick={() => setTerminalMode('SEND_STABLECOIN')} className={terminalMode === 'SEND_STABLECOIN' ? 'active' : ''}>Send Stablecoin</button>
         <button onClick={() => setTerminalMode('WITHDRAW')} className={terminalMode === 'WITHDRAW' ? 'active' : ''}>Withdraw Funds</button>
       </div>
-      
+
       <div className="network-selectors">
         <div className="selector-group">
             <label htmlFor="network-select">Network</label>
@@ -147,7 +159,7 @@ function PaymentTerminal({
             </select>
         </div>
         <div className="selector-group">
-             <label htmlFor="stablecoin-select">Stablecoin</label>
+             <label htmlFor="stablecoin-select">Asset</label>
             <select id="stablecoin-select" value={selectedStablecoin} onChange={(e) => setSelectedStablecoin(e.target.value)} disabled={availableStablecoins.length === 0}>
                 {availableStablecoins.length > 0 ? availableStablecoins.map(coin => (
                     <option key={coin.symbol} value={coin.symbol}>{coin.symbol}</option>
@@ -161,4 +173,3 @@ function PaymentTerminal({
   );
 }
 export default PaymentTerminal;
-

@@ -10,7 +10,8 @@ const getCoinGeckoId = (symbol) => {
         'USDC': 'usd-coin',
         'USDT': 'tether',
         'PYUSD': 'paypal-usd',
-        'EURC': 'euro-coin'
+        'EURC': 'euro-coin',
+        'ETH': 'ethereum'
     };
     return map[symbol.toUpperCase()];
 }
@@ -37,7 +38,7 @@ function StablecoinPaymentRequest({
 
             const coinId = getCoinGeckoId(selectedStablecoin);
             if (!coinId) {
-                setStatus(`Error: Unsupported stablecoin for price feed.`);
+                setStatus(`Error: Unsupported asset for price feed.`);
                 setIsLoadingPrice(false);
                 return;
             }
@@ -45,10 +46,10 @@ function StablecoinPaymentRequest({
             try {
                 const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=${fiatCurrency.toLowerCase()}`);
                 if (!response.ok) throw new Error('Failed to fetch price data.');
-                
+
                 const data = await response.json();
                 const rate = data[coinId][fiatCurrency.toLowerCase()];
-                
+
                 if (rate) {
                     setCryptoAmount(parseFloat(fiatAmount) / rate);
                     setStatus(''); // Clear status on success
@@ -77,12 +78,18 @@ function StablecoinPaymentRequest({
             return 'invalid';
         }
 
+        const isNative = selectedStablecoin === 'ETH';
         const tokenInfo = STABLECOIN_ADDRESSES[selectedChain.id];
-        if (!tokenInfo || !tokenInfo[selectedStablecoin]) return 'invalid';
-        
-        const tokenAddress = tokenInfo[selectedStablecoin];
-        const tokenDecimals = selectedStablecoin === 'USDC' ? 6 : 18; // Common decimals
+
+        if (!isNative && (!tokenInfo || !tokenInfo[selectedStablecoin])) return 'invalid';
+
+        const tokenAddress = isNative ? '' : tokenInfo[selectedStablecoin];
+        const tokenDecimals = isNative ? 18 : (selectedStablecoin === 'USDC' ? 6 : 18); // Common decimals
         const amountInSmallestUnit = parseUnits(cryptoAmount.toFixed(tokenDecimals), tokenDecimals);
+
+        if(isNative) {
+            return `ethereum:${merchantAddress}@${selectedChain.id}?value=${amountInSmallestUnit.toString()}`;
+        }
 
         return `ethereum:${tokenAddress}@${selectedChain.id}/transfer?address=${merchantAddress}&uint256=${amountInSmallestUnit.toString()}`;
     };
@@ -96,12 +103,12 @@ function StablecoinPaymentRequest({
 
     return (
         <div className="stablecoin-payment-view">
-            <h3>Accept Stablecoin Payment</h3>
-            
+            <h3>Accept {selectedStablecoin} Payment</h3>
+
             <div className="amount-input-container">
-              <input 
-                type="number" 
-                className="amount-input" 
+              <input
+                type="number"
+                className="amount-input"
                 value={fiatAmount}
                 min="1"
                 onChange={(e) => setFiatAmount(e.target.value)}
@@ -127,7 +134,7 @@ function StablecoinPaymentRequest({
                     <div className="qr-placeholder">Enter a valid amount to generate QR Code</div>
                 )}
             </div>
-            
+
             <div className="payment-address-details">
                 <p>Send to this address on the {selectedChain.name} network:</p>
                 <div className="address-bar">

@@ -16,7 +16,7 @@ function App() {
   const [merchantAddress, setMerchantAddress] = useState(null);
   const [chain, setChain] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedChain, setSelectedChain] = useState(polygon); 
+  const [selectedChain, setSelectedChain] = useState(polygon);
   const [selectedStablecoin, setSelectedStablecoin] = useState('USDC');
 
   useEffect(() => {
@@ -82,8 +82,8 @@ function App() {
       return (
         <div className="connection-view">
           <div className="step-card">
-            <WalletConnector 
-              onConnect={handleWalletConnect} 
+            <WalletConnector
+              onConnect={handleWalletConnect}
               selectedChain={selectedChain}
               selectedStablecoin={selectedStablecoin}
             />
@@ -91,29 +91,29 @@ function App() {
         </div>
       );
     }
-    
+
     return (
       <div className="application-view">
         <div className="step-card">
-          <WalletConnector 
-            onConnect={handleWalletConnect} 
+          <WalletConnector
+            onConnect={handleWalletConnect}
             selectedChain={selectedChain}
             selectedStablecoin={selectedStablecoin}
           />
         </div>
         {isWrongNetwork && (
-            <p className="error-message">Your wallet is on the wrong network. Please use the button above to switch to {selectedChain.name}.</p>
+          <p className="error-message">Your wallet is on the wrong network. Please use the button above to switch to {selectedChain.name}.</p>
         )}
         <PaymentTerminal
-            apiKey={config.transakApiKey}
-            environment={config.transakEnvironment}
-            merchantAddress={merchantAddress}
-            setStatus={setStatus}
-            selectedChain={selectedChain}
-            setSelectedChain={setSelectedChain}
-            selectedStablecoin={selectedStablecoin}
-            setSelectedStablecoin={setSelectedStablecoin}
-            isInteractionDisabled={isWrongNetwork}
+          apiKey={config.transakApiKey}
+          environment={config.transakEnvironment}
+          merchantAddress={merchantAddress}
+          setStatus={setStatus}
+          selectedChain={selectedChain}
+          setSelectedChain={setSelectedChain}
+          selectedStablecoin={selectedStablecoin}
+          setSelectedStablecoin={setSelectedStablecoin}
+          isInteractionDisabled={isWrongNetwork}
         />
       </div>
     );
@@ -139,4 +139,3 @@ function App() {
   );
 }
 export default App;
-

@@ -80,7 +80,7 @@ body {
   padding: 12px;
   border-radius: 8px;
   font-weight: 500;
-  margin-top: -10px; 
+  margin-top: -10px;
   margin-bottom: 20px;
 }
 
@@ -130,7 +130,7 @@ body {
 .create-wallet-button {
     background: none;
     border: none;
-    color: #f6851b; 
+    color: #f6851b;
     font-size: 1em;
     font-weight: 600;
     cursor: pointer;
@@ -270,6 +270,36 @@ body {
   display: flex;
   gap: 10px;
 }
+
+.address-input-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.address-input {
+  flex: 1;
+  padding: 15px;
+  font-size: 1em;
+  border: 1px solid #444;
+  background-color: #1e1e1e;
+  color: #fff;
+  border-radius: 8px;
+}
+
+.qr-scan-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
 .amount-input {
   flex: 3;
   padding: 15px;
@@ -463,4 +493,3 @@ body {
     height: 150px;
   }
 }
-
