@@ -1,37 +1,35 @@
 const webpack = require('webpack');
 
-module.exports = function override(config, env) {
-    // Add fallbacks for Node.js core modules
-    config.resolve.fallback = {
-        ...config.resolve.fallback,
+module.exports = function override(config) {
+    const fallback = config.resolve.fallback || {};
+    Object.assign(fallback, {
         "crypto": require.resolve("crypto-browserify"),
         "stream": require.resolve("stream-browserify"),
-        "process": require.resolve("process/browser"),
-        "buffer": require.resolve("buffer"),
-        "util": require.resolve("util"),
-        "url": require.resolve("url"),
         "assert": require.resolve("assert"),
+        "http": require.resolve("stream-http"),
         "https": require.resolve("https-browserify"),
-        "os": require.resolve("os-browserify/browser"),
-        "http": require.resolve("stream-http")
-    };
-
-    // Add the ProvidePlugin to make modules globally available
+        "os": require.resolve("os-browserify"),
+        "url": require.resolve("url"),
+        // Polyfill for 'vm' module required by some crypto dependencies
+        "vm": require.resolve("vm-browserify")
+    });
+    config.resolve.fallback = fallback;
+    
     config.plugins = (config.plugins || []).concat([
         new webpack.ProvidePlugin({
             process: 'process/browser',
-            Buffer: ['buffer', 'Buffer'],
-        }),
+            Buffer: ['buffer', 'Buffer']
+        })
     ]);
     
-    // This rule is to handle a specific issue with @web3modal/wagmi
+    // This rule is to handle a specific issue with the @solana/wallet-adapter-wallets library
+    // which was causing the "Can't resolve 'process/browser'" error in some sub-dependencies.
     config.module.rules.push({
-        test: /\.m?js$/,
+        test: /\.m?js/,
         resolve: {
-            fullySpecified: false,
-        },
+            fullySpecified: false
+        }
     });
-
 
     return config;
 }
