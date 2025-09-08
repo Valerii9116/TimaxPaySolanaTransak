@@ -14,6 +14,17 @@ async function getTransakAccessToken(apiKey, apiSecret, apiUrl) {
 }
 
 module.exports = async function (context, req) {
+  // ** THE FIX IS HERE **
+  // Gracefully handle requests that are missing a body, which can occur during
+  // the Azure build and deployment process.
+  if (!req.body) {
+    context.res = {
+        status: 400,
+        body: { error: "Request body is missing. This endpoint requires a POST request." }
+    };
+    return;
+  }
+
   const { partnerCustomerId } = req.body;
   if (!partnerCustomerId) {
     context.res = { status: 400, body: { error: "partnerCustomerId is required." }};
@@ -33,7 +44,6 @@ module.exports = async function (context, req) {
 
     const accessToken = await getTransakAccessToken(apiKey, apiSecret, transakApiUrl);
     
-    // **CORRECTION**: This now correctly formats the filter for both BUY and SELL transactions.
     const products = encodeURIComponent(JSON.stringify(["BUY", "SELL"]));
     const ordersUrl = `${transakApiUrl}/partners/api/v2/orders?filter[partnerCustomerId]=${encodeURIComponent(partnerCustomerId)}&filter[productsAvailed]=${products}`;
 
