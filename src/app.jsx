@@ -74,7 +74,7 @@ function App({ transakApiKey, transakEnvironment }) {
   return (
     <div className="app-container">
       <header className="App-header">
-        <h1>TimaxPay Merch Terminal</h1>
+        <h1>TimaxPay Terminal</h1>
         <p className="subtitle">Accept & Send Crypto on EVM + Solana</p>
       </header>
       {!merchantAddress ? (
