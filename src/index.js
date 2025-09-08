@@ -53,11 +53,10 @@ const initializeApp = async () => {
     if (!container) return;
     const root = createRoot(container);
 
-    // Render a loading state first to give feedback to the user
+    // Render a loading state first
     root.render(<StatusDisplay message="Initializing Terminal..." />);
 
     try {
-        // 1. Fetch the remote configuration from the API
         const response = await fetch('/api/getConfig');
         if (!response.ok) throw new Error(`API Error: ${response.statusText} (Status: ${response.status})`);
         const serverConfig = await response.json();
@@ -71,22 +70,23 @@ const initializeApp = async () => {
             icons: ['https://merch.timaxpay.com/logo512.png']
         };
 
-        // 2. Create the Wagmi configuration object
         const wagmiConfig = createConfig({
             chains: EVM_CHAINS_WAGMI,
             connectors: [
-                walletConnect({ projectId, metadata }),
+                // ** THE FIX IS HERE **
+                // We set `showQrModal: false` to delegate the mobile connection UI
+                // entirely to Web3Modal, which handles deep linking correctly.
+                walletConnect({ projectId, metadata, showQrModal: false }),
                 injected({ shimDisconnect: true }),
                 coinbaseWallet({ appName: metadata.name })
             ],
             transports: EVM_CHAINS_WAGMI.reduce((obj, chain) => ({ ...obj, [chain.id]: http() }), {}),
         });
 
-        // 3. CRITICAL STEP: Initialize the Web3Modal instance BEFORE rendering the React app.
-        // This ensures that the useWeb3Modal hook will find the created instance.
+        // CRITICAL: Initialize the Web3Modal instance BEFORE rendering the React app.
         createWeb3Modal({ wagmiConfig, projectId, enableAnalytics: false, themeMode: 'dark' });
 
-        // 4. Now that all setup is complete, render the full application.
+        // Now that all setup is complete, render the full application.
         root.render(
             <AppWrapper config={{ ...serverConfig, wagmiConfig }}>
                 <App 
