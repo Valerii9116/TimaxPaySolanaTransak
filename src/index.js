@@ -15,6 +15,7 @@ import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
+import { WalletError } from '@solana/wallet-adapter-base';
 
 const queryClient = new QueryClient();
 
@@ -30,12 +31,30 @@ const AppWrapper = ({ config, children }) => {
   const solanaEndpoint = useMemo(() => clusterApiUrl('mainnet-beta'), []);
   const wallets = useMemo(() => [new PhantomWalletAdapter(), new SolflareWalletAdapter()], []);
 
+  // ** THE FIX IS HERE **
+  // Add a robust error handler to the Solana WalletProvider to catch connection issues.
+  const handleWalletError = (error) => {
+    // You can use a toast library here to show a user-friendly message
+    console.error("Solana Wallet Error:", error);
+    if (error instanceof WalletError) {
+        alert(`Wallet Error: ${error.message}`);
+    } else {
+        alert("An unknown wallet error occurred. Please try again.");
+    }
+  };
+
   return (
     <React.StrictMode>
       <WagmiProvider config={config.wagmiConfig}>
         <QueryClientProvider client={queryClient}>
           <ConnectionProvider endpoint={solanaEndpoint}>
-            <WalletProvider wallets={wallets} autoConnect>
+            <WalletProvider 
+              wallets={wallets} 
+              onError={handleWalletError}
+              // ** THE FIX IS HERE **
+              // Disable autoConnect on mobile to ensure a more reliable manual connection flow.
+              autoConnect={false} 
+            >
               <WalletModalProvider>
                 {children}
               </WalletModalProvider>
@@ -73,9 +92,6 @@ const initializeApp = async () => {
         const wagmiConfig = createConfig({
             chains: EVM_CHAINS_WAGMI,
             connectors: [
-                // ** THE FIX IS HERE **
-                // We set `showQrModal: false` to delegate the mobile connection UI
-                // entirely to Web3Modal, which handles deep linking correctly.
                 walletConnect({ projectId, metadata, showQrModal: false }),
                 injected({ shimDisconnect: true }),
                 coinbaseWallet({ appName: metadata.name })
