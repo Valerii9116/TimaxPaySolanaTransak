@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start-app": "vite",
-    "start-api": "func start",
+    "start-api": "func start --prefix api",
     "start": "concurrently \"npm:start-api\" \"npm:start-app\"",
     "build": "vite build",
     "preview": "vite preview"
