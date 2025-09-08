@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start-app": "vite",
-    "start-api": "func start --prefix api",
+    "start-api": "func start api",
     "start": "concurrently \"npm:start-api\" \"npm:start-app\"",
     "build": "vite build",
     "preview": "vite preview"
@@ -38,7 +38,8 @@
     "@vitejs/plugin-react": "^4.3.1",
     "concurrently": "^8.2.2",
     "vite": "^5.3.4",
-    "vite-plugin-node-polyfills": "^0.22.0"
+    "vite-plugin-node-polyfills": "^0.22.0",
+    "vite-plugin-static-copy": "^1.0.6"
   }
 }
 
