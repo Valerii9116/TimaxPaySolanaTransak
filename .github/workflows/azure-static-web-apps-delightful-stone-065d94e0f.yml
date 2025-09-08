@@ -44,8 +44,6 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DELIGHTFUL_STONE_065D94E0F }}
           action: "close"
-<<<<<<< HEAD
           app_location: "/" # App source code path
-=======
 
->>>>>>> aa21d89b67f8e68f0580790e776549d7d287d414
+
