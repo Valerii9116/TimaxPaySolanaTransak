@@ -1,12 +1,17 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/static/css/*", "/static/js/*", "/static/media/*", "*.{png,jpg,gif,ico,svg}"]
+    "exclude": [
+      "*.{css,js,png,jpg,gif,ico,svg}"
+    ]
   },
   "routes": [
     {
       "route": "/api/*",
-      "methods": ["GET", "POST"],
+      "methods": [
+        "GET",
+        "POST"
+      ],
       "rewrite": "/api/*"
     }
   ],
@@ -17,3 +22,4 @@
     }
   }
 }
+
