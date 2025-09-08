@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { useAccount, useSwitchChain, useBalance } from 'wagmi';
-// Correct the import path for the useWeb3Modal hook
+import { useAccount, useSwitchChain, useBalance, useDisconnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { formatUnits } from 'viem';
 
@@ -11,17 +10,15 @@ function EVMWalletConnector({ onConnect, selectedChain, selectedAsset }) {
   const { open } = useWeb3Modal();
   const { address, isConnected, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
-  
-  // Get token address for balance check, handle native assets
+  const { disconnect } = useDisconnect();
+
   const tokenAddress = ASSET_ADDRESSES[selectedChain.id]?.[selectedAsset];
   const isNativeAsset = tokenAddress === 'NATIVE';
 
   const { data: balanceData, isLoading: isBalanceLoading } = useBalance({
     address,
     chainId: selectedChain.id,
-    // Only provide a token address if it's not the native asset
     token: isNativeAsset ? undefined : tokenAddress,
-    // Only enable the query if the user is connected and a token address exists
     enabled: isConnected && !!tokenAddress,
   });
   
@@ -30,6 +27,11 @@ function EVMWalletConnector({ onConnect, selectedChain, selectedAsset }) {
   }, [address, chainId, onConnect]);
 
   const isWrongNetwork = isConnected && chainId !== selectedChain.id;
+
+  const handleDisconnect = () => {
+    disconnect();
+    onConnect(null, null); // Clear the address in the parent App component
+  };
 
   const renderBalance = () => {
     if (isWrongNetwork) return <span className="balance-info error">Wrong Network</span>;
@@ -49,14 +51,17 @@ function EVMWalletConnector({ onConnect, selectedChain, selectedAsset }) {
                 {renderBalance()}
             </div>
         </div>
-        <div>
+        <div className="wallet-actions">
           {isWrongNetwork && (
             <button className="switch-button-compact" onClick={() => switchChain({ chainId: selectedChain.id })}>
               Switch
             </button>
           )}
-          <button onClick={() => open({ view: 'Account' })} className="disconnect-button-compact">
+          <button onClick={() => open({ view: 'Account' })} className="account-button-compact">
             Account
+          </button>
+          <button onClick={handleDisconnect} className="disconnect-button-compact">
+            Disconnect
           </button>
         </div>
       </div>

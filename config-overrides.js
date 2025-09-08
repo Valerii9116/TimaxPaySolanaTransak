@@ -1,36 +1,26 @@
 const webpack = require('webpack');
 
-module.exports = function override(config) {
-    const fallback = config.resolve.fallback || {};
-    Object.assign(fallback, {
+module.exports = function override(config, env) {
+    // Add fallbacks for Node.js core modules
+    config.resolve.fallback = {
+        ...config.resolve.fallback,
         "crypto": require.resolve("crypto-browserify"),
         "stream": require.resolve("stream-browserify"),
-        "assert": require.resolve("assert"),
-        "http": require.resolve("stream-http"),
-        "https": require.resolve("https-browserify"),
-        "os": require.resolve("os-browserify"),
-        "url": require.resolve("url"),
-        // Polyfill for 'vm' module required by some crypto dependencies
-        "vm": require.resolve("vm-browserify")
-    });
-    config.resolve.fallback = fallback;
-    
+        "vm": require.resolve("vm-browserify"),
+        "process/browser": require.resolve("process/browser")
+    };
+
+    // Add the ProvidePlugin to make modules globally available
     config.plugins = (config.plugins || []).concat([
         new webpack.ProvidePlugin({
             process: 'process/browser',
-            Buffer: ['buffer', 'Buffer']
-        })
+            Buffer: ['buffer', 'Buffer'],
+        }),
     ]);
-    
-    // This rule is to handle a specific issue with the @solana/wallet-adapter-wallets library
-    // which was causing the "Can't resolve 'process/browser'" error in some sub-dependencies.
-    config.module.rules.push({
-        test: /\.m?js/,
-        resolve: {
-            fullySpecified: false
-        }
-    });
+
+    // This is to address a specific issue with some dependencies
+    config.ignoreWarnings = [/Failed to parse source map/];
 
     return config;
-}
+};
 

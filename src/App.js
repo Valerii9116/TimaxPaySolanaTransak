@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDisconnect } from 'wagmi';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 // --- STYLES & CONFIG ---
 import './App.css';
@@ -15,6 +17,23 @@ function App({ transakApiKey, transakEnvironment }) {
   const [connectedChain, setConnectedChain] = useState(null);
   const [selectedChain, setSelectedChain] = useState(SUPPORTED_CHAINS[0]);
   const [selectedAsset, setSelectedAsset] = useState('ETH');
+
+  const { disconnect: disconnectEVM } = useDisconnect();
+  const { disconnect: disconnectSolana, connected: isSolanaConnected } = useWallet();
+
+  useEffect(() => {
+    if (selectedChain.chainType === 'SOLANA' && connectedChain?.chainType === 'EVM') {
+      disconnectEVM();
+      setMerchantAddress(null);
+      setConnectedChain(null);
+    }
+    if (selectedChain.chainType === 'EVM' && isSolanaConnected) {
+      disconnectSolana().catch(e => console.error("Solana disconnect failed", e));
+      setMerchantAddress(null);
+      setConnectedChain(null);
+    }
+  }, [selectedChain, connectedChain, isSolanaConnected, disconnectEVM, disconnectSolana]);
+
 
   const handleEvmConnect = (address, chainId) => {
     if (selectedChain.chainType === 'EVM') {

@@ -31,15 +31,11 @@ const AppWrapper = ({ config, children }) => {
   const solanaEndpoint = useMemo(() => clusterApiUrl('mainnet-beta'), []);
   const wallets = useMemo(() => [new PhantomWalletAdapter(), new SolflareWalletAdapter()], []);
 
-  // ** THE FIX IS HERE **
-  // Add a robust error handler to the Solana WalletProvider to catch connection issues.
   const handleWalletError = (error) => {
-    // You can use a toast library here to show a user-friendly message
     console.error("Solana Wallet Error:", error);
+    // Use a simple alert for now, but a toast notification would be better in a real app
     if (error instanceof WalletError) {
-        alert(`Wallet Error: ${error.message}`);
-    } else {
-        alert("An unknown wallet error occurred. Please try again.");
+        alert(`Wallet Connection Error: ${error.message}`);
     }
   };
 
@@ -51,8 +47,8 @@ const AppWrapper = ({ config, children }) => {
             <WalletProvider 
               wallets={wallets} 
               onError={handleWalletError}
-              // ** THE FIX IS HERE **
-              // Disable autoConnect on mobile to ensure a more reliable manual connection flow.
+              // autoConnect can be problematic on mobile, causing deep link issues.
+              // It's safer to let the user initiate all connections.
               autoConnect={false} 
             >
               <WalletModalProvider>
@@ -72,7 +68,6 @@ const initializeApp = async () => {
     if (!container) return;
     const root = createRoot(container);
 
-    // Render a loading state first
     root.render(<StatusDisplay message="Initializing Terminal..." />);
 
     try {
@@ -99,10 +94,16 @@ const initializeApp = async () => {
             transports: EVM_CHAINS_WAGMI.reduce((obj, chain) => ({ ...obj, [chain.id]: http() }), {}),
         });
 
-        // CRITICAL: Initialize the Web3Modal instance BEFORE rendering the React app.
-        createWeb3Modal({ wagmiConfig, projectId, enableAnalytics: false, themeMode: 'dark' });
+        // Initialize the Web3Modal instance BEFORE rendering the React app.
+        createWeb3Modal({ 
+            wagmiConfig, 
+            projectId, 
+            enableAnalytics: false, 
+            themeMode: 'dark',
+            // Re-enable the "Buy" option in the account view
+            enableOnramp: true 
+        });
 
-        // Now that all setup is complete, render the full application.
         root.render(
             <AppWrapper config={{ ...serverConfig, wagmiConfig }}>
                 <App 
@@ -118,7 +119,6 @@ const initializeApp = async () => {
     }
 };
 
-// Start the application initialization process
 initializeApp();
 
 reportWebVitals();
