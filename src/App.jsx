@@ -55,14 +55,18 @@ function App({ transakApiKey, transakEnvironment }) {
       setMerchantAddress(solanaPublicKey.toBase58());
       setConnectedChain({ chainType: 'SOLANA' });
       const solanaChain = SUPPORTED_CHAINS.find(c => c.chainType === 'SOLANA');
-      if (solanaChain) setSelectedChain(solanaChain);
+      if (solanaChain) {
+          setSelectedChain(solanaChain);
+          const defaultAsset = Object.keys(solanaChain.assets || {})[0];
+          setSelectedAsset(defaultAsset || null);
+      }
       if (isEvmConnected) disconnectEVM();
     }
     else {
       setMerchantAddress(null);
       setConnectedChain(null);
     }
-  }, [isEvmConnected, evmAddress, evmChainId, isSolanaConnected, solanaPublicKey, disconnectEVM, disconnectSolana]);
+  }, [isEvmConnected, evmAddress, evmChainId, isSolanaConnected, solanaPublicKey, disconnectEVM, disconnectSolana, selectedChain.assets]);
 
   const handleDisconnect = () => {
     if (connectedChain?.chainType === 'EVM') disconnectEVM();

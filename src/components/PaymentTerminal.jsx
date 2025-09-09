@@ -8,7 +8,7 @@ import SendCrypto from './SendCrypto.jsx';
 function PaymentTerminal(props) {
   const [mode, setMode] = useState('ACCEPT_CRYPTO');
   const { selectedChain, setSelectedChain, selectedAsset, setSelectedAsset, apiKey, environment, merchantAddress, setStatus } = props;
-  const availableAssets = Object.keys(ASSET_ADDRESSES[selectedChain.id] || {});
+  const availableAssets = Object.keys(selectedChain.assets || {});
   const [fiatAmount, setFiatAmount] = useState('20.00');
   const [cryptoAmount, setCryptoAmount] = useState('100.00');
   const [fiatCurrency, setFiatCurrency] = useState('GBP');
@@ -17,7 +17,7 @@ function PaymentTerminal(props) {
     const newChain = SUPPORTED_CHAINS.find(c => String(c.id) === e.target.value);
     if (newChain) { 
         setSelectedChain(newChain); 
-        const newAssets = Object.keys(ASSET_ADDRESSES[newChain.id] || {});
+        const newAssets = Object.keys(newChain.assets || {});
         setSelectedAsset(newAssets[0] || null);
     }
   };

@@ -83,10 +83,7 @@ function SendCrypto({ selectedChain, selectedAsset, setStatus, isInteractionDisa
         </div>
         {isScanning && <div id="qr-scanner-container"></div>}
       </div>
-      <div className="selector-group">
-        <label>Amount</label>
-        <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
-      </div>
+      <div className="selector-group"><label>Amount</label><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" /></div>
       <button className="launch-button" onClick={handleSend} disabled={isInteractionDisabled || !toAddress || !amount}>
         Send {amount || '0.00'} {selectedAsset}
       </button>

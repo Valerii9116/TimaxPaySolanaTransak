@@ -20,7 +20,10 @@ export default defineConfig({
   server: {
     // This proxy is needed for local development to connect to your Azure Functions API
     proxy: {
-      '/api': 'http://localhost:7071',
+      '/api': {
+        target: 'http://localhost:7071',
+        changeOrigin: true,
+      },
     },
   },
 });

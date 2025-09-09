@@ -2,17 +2,6 @@ import { polygon, mainnet, arbitrum, base, avalanche, optimism, linea } from 'wa
 
 export const EVM_CHAINS_WAGMI = [polygon, mainnet, arbitrum, base, avalanche, optimism, linea];
 
-export const SUPPORTED_CHAINS = [
-    { id: 1, name: 'Ethereum', chainType: 'EVM' },
-    { id: 137, name: 'Polygon', chainType: 'EVM' },
-    { id: 42161, name: 'Arbitrum', chainType: 'EVM' },
-    { id: 8453, name: 'Base', chainType: 'EVM' },
-    { id: 43114, name: 'Avalanche', chainType: 'EVM' },
-    { id: 10, name: 'OP Mainnet', chainType: 'EVM' },
-    { id: 59144, name: 'Linea', chainType: 'EVM' },
-    { id: 'solana', name: 'Solana', chainType: 'SOLANA' }
-];
-
 export const SUPPORTED_ASSETS = {
     'ETH': { name: 'Ethereum', type: 'NATIVE', decimals: 18 }, 
     'USDC': { name: 'USD Coin', type: 'TOKEN', decimals: 6 },
@@ -32,6 +21,17 @@ export const ASSET_ADDRESSES = {
     59144: { 'ETH': 'NATIVE', 'USDC': '0x176211869cA2b568f2A7D4EE941E073a821EE1ff' },
     'solana': { 'SOL': 'NATIVE', 'USDC': 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyB7uP3', 'USDT': 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB' }
 };
+
+export const SUPPORTED_CHAINS = [
+    { id: 1, name: 'Ethereum', chainType: 'EVM', assets: ASSET_ADDRESSES[1] },
+    { id: 137, name: 'Polygon', chainType: 'EVM', assets: ASSET_ADDRESSES[137] },
+    { id: 42161, name: 'Arbitrum', chainType: 'EVM', assets: ASSET_ADDRESSES[42161] },
+    { id: 8453, name: 'Base', chainType: 'EVM', assets: ASSET_ADDRESSES[8453] },
+    { id: 43114, name: 'Avalanche', chainType: 'EVM', assets: ASSET_ADDRESSES[43114] },
+    { id: 10, name: 'OP Mainnet', chainType: 'EVM', assets: ASSET_ADDRESSES[10] },
+    { id: 59144, name: 'Linea', chainType: 'EVM', assets: ASSET_ADDRESSES[59144] },
+    { id: 'solana', name: 'Solana', chainType: 'SOLANA', assets: ASSET_ADDRESSES['solana'] }
+];
 
 export const TRANSAK_NETWORK_MAP = {
     1: 'ETHEREUM', 137: 'POLYGON', 42161: 'ARBITRUM', 8453: 'BASE', 43114: 'AVALANCHEC', 10: 'OPTIMISM', 59144: 'LINEA', 'solana': 'SOLANA'
