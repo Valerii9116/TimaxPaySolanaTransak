@@ -1,26 +1,31 @@
 const axios = require('axios');
 
+/**
+ * Refreshes the Transak access token using the API key and secret.
+ */
 async function getTransakAccessToken(apiKey, apiSecret, apiUrl) {
   const url = `${apiUrl}/partners/api/v2/refresh-token`;
   try {
     const response = await axios.post(url, { apiKey }, {
       headers: { 'api-secret': apiSecret }
     });
-    return response.data.data.accessToken;
+    if (response.data && response.data.data && response.data.data.accessToken) {
+        return response.data.data.accessToken;
+    }
+    throw new Error('Access token not found in Transak response.');
   } catch (error) {
     const errorDetails = error.response ? JSON.stringify(error.response.data) : error.message;
-    throw new Error(`Failed to refresh Transak token: ${errorDetails}`);
+    // Log the detailed error for debugging on the server
+    console.error(`Failed to refresh Transak token: ${errorDetails}`);
+    throw new Error(`Failed to refresh Transak token.`);
   }
 }
 
 module.exports = async function (context, req) {
-  // ** THE FIX IS HERE **
-  // Gracefully handle requests that are missing a body, which can occur during
-  // the Azure build and deployment process.
   if (!req.body) {
     context.res = {
         status: 400,
-        body: { error: "Request body is missing. This endpoint requires a POST request." }
+        body: { error: "Request body is missing." }
     };
     return;
   }
@@ -34,12 +39,16 @@ module.exports = async function (context, req) {
   try {
     const apiKey = process.env.TRANSAK_API_KEY;
     const apiSecret = process.env.TRANSAK_API_SECRET;
-    const transakApiUrl = (process.env.TRANSAK_ENVIRONMENT === 'STAGING') 
-      ? 'https://api-stg.transak.com' 
-      : 'https://api.transak.com';
+    const transakEnvironment = process.env.TRANSAK_ENVIRONMENT;
+
+    // FIX: Removed invalid Markdown links from the URL strings.
+    const transakApiUrl = (transakEnvironment === 'STAGING') 
+       ? 'https://api-stg.transak.com' 
+       : 'https://api.transak.com';
 
     if (!apiKey || !apiSecret) {
-      throw new Error("API credentials are not configured in application settings.");
+      context.log.error("API credentials are not configured in application settings.");
+      throw new Error("Server API credentials are not configured.");
     }
 
     const accessToken = await getTransakAccessToken(apiKey, apiSecret, transakApiUrl);

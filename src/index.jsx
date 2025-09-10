@@ -9,7 +9,6 @@ import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react';
 import { EVM_CHAINS_WAGMI } from './config.js';
-
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
@@ -27,9 +26,13 @@ const StatusDisplay = ({ message }) => (
 const AppWrapper = ({ config, children }) => {
   const solanaEndpoint = useMemo(() => clusterApiUrl('mainnet-beta'), []);
   const wallets = useMemo(() => [new PhantomWalletAdapter(), new SolflareWalletAdapter()], []);
+
   const handleWalletError = (error) => {
     console.error("Solana Wallet Error:", error);
-    if (error instanceof WalletError) alert(`Wallet Connection Error: ${error.message}`);
+    // Using console.error is better than alert for a smoother user experience
+    if (error instanceof WalletError) {
+        console.error(`Wallet Connection Error: ${error.message}`);
+    }
   };
 
   return (
@@ -37,7 +40,8 @@ const AppWrapper = ({ config, children }) => {
       <WagmiProvider config={config.wagmiConfig}>
         <QueryClientProvider client={queryClient}>
           <ConnectionProvider endpoint={solanaEndpoint}>
-            <WalletProvider wallets={wallets} onError={handleWalletError} autoConnect={false}>
+            {/* FIX: Set autoConnect to true to improve wallet connection reliability */}
+            <WalletProvider wallets={wallets} onError={handleWalletError} autoConnect={true}>
               <WalletModalProvider>{children}</WalletModalProvider>
             </WalletProvider>
           </ConnectionProvider>
@@ -56,6 +60,7 @@ const initializeApp = async () => {
     try {
         const response = await fetch('/api/getConfig');
         if (!response.ok) throw new Error(`API Error: ${response.statusText} (Status: ${response.status})`);
+        
         const serverConfig = await response.json();
         if (!serverConfig.walletConnectProjectId) throw new Error('WalletConnect Project ID is missing from server config.');
 
@@ -66,6 +71,7 @@ const initializeApp = async () => {
             url: 'https://merch.timaxpay.com',
             icons: ['https://merch.timaxpay.com/logo512.png']
         };
+
         const wagmiConfig = defaultWagmiConfig({
             chains: EVM_CHAINS_WAGMI,
             projectId,
@@ -88,4 +94,3 @@ const initializeApp = async () => {
 
 initializeApp();
 reportWebVitals();
-

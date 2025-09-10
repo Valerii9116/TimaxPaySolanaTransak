@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "engines": {
-    "node": ">=20.18.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "start-app": "vite",
@@ -41,4 +41,3 @@
     "vite-plugin-node-polyfills": "^0.22.0"
   }
 }
-
