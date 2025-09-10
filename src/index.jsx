@@ -14,6 +14,9 @@ import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
 import { WalletError } from '@solana/wallet-adapter-base';
+// Required for Solana Wallet UI styling
+import '@solana/wallet-adapter-react-ui/styles.css';
+
 
 const queryClient = new QueryClient();
 
@@ -29,7 +32,6 @@ const AppWrapper = ({ config, children }) => {
 
   const handleWalletError = (error) => {
     console.error("Solana Wallet Error:", error);
-    // Using console.error is better than alert for a smoother user experience
     if (error instanceof WalletError) {
         console.error(`Wallet Connection Error: ${error.message}`);
     }
@@ -40,8 +42,10 @@ const AppWrapper = ({ config, children }) => {
       <WagmiProvider config={config.wagmiConfig}>
         <QueryClientProvider client={queryClient}>
           <ConnectionProvider endpoint={solanaEndpoint}>
-            {/* FIX: Set autoConnect to true to improve wallet connection reliability */}
-            <WalletProvider wallets={wallets} onError={handleWalletError} autoConnect={true}>
+            {/* FIX: Set autoConnect to false. This is more stable and prevents race conditions,
+                which is a likely cause for the Phantom wallet issue. The user will be
+                prompted to connect manually, which is a more reliable flow. */}
+            <WalletProvider wallets={wallets} onError={handleWalletError} autoConnect={false}>
               <WalletModalProvider>{children}</WalletModalProvider>
             </WalletProvider>
           </ConnectionProvider>
@@ -59,7 +63,11 @@ const initializeApp = async () => {
 
     try {
         const response = await fetch('/api/getConfig');
-        if (!response.ok) throw new Error(`API Error: ${response.statusText} (Status: ${response.status})`);
+        if (!response.ok) {
+            // Provide more detailed error information from the response if available
+            const errorBody = await response.text();
+            throw new Error(`API Error: ${response.statusText} (Status: ${response.status}). Response: ${errorBody}`);
+        }
         
         const serverConfig = await response.json();
         if (!serverConfig.walletConnectProjectId) throw new Error('WalletConnect Project ID is missing from server config.');
@@ -94,3 +102,4 @@ const initializeApp = async () => {
 
 initializeApp();
 reportWebVitals();
+
