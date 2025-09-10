@@ -1,18 +1,18 @@
 {
   "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": ["/static/assets/*", "/logo512.png", "/favicon.ico"]
+    "rewrite": "/index.html"
   },
-  "responseOverrides": {
-    "404": {
-      "rewrite": "/index.html",
-      "statusCode": 200
+  "routes": [
+    {
+      "route": "/api/*",
+      "rewrite": "/api/*"
     }
-  },
+  ],
   "globalHeaders": {
-    "Content-Security-Policy": "default-src https: 'self' wss:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://merch.timaxpay.com; img-src 'self' data: https://merch.timaxpay.com;"
+    "Content-Security-Policy": "default-src 'self' https: data: wss:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.walletconnect.com; style-src 'self' 'unsafe-inline'; connect-src *; img-src 'self' data: https:;"
   },
   "platform": {
     "apiRuntime": "node:18"
   }
 }
+
