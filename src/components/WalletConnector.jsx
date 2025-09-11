@@ -1,108 +1,22 @@
-import React, { useEffect } from 'react';
-import { useAccount, useConnect, useDisconnect, useSwitchChain, useBalance } from 'wagmi';
-import { formatUnits } from 'viem';
-import { STABLECOIN_ADDRESSES } from '../config';
+import React from 'react';
 
-function WalletConnector({ onConnect, selectedChain, selectedStablecoin }) {
-  const { address, isConnected, chainId } = useAccount();
-  const { connectors, connect, error } = useConnect();
-  const { disconnect } = useDisconnect();
-  const { switchChain } = useSwitchChain();
-  const isNative = selectedStablecoin === 'ETH';
-  const tokenAddress = isNative ? undefined : STABLECOIN_ADDRESSES[selectedChain.id]?.[selectedStablecoin];
+// This component displays information about the currently connected wallet
+// and provides a button to disconnect.
+function WalletConnector({ wallet, onDisconnect }) {
+    if (!wallet) return null;
 
-  const { data: balanceData, isLoading: isBalanceLoading, isError: isBalanceError } = useBalance({
-    address: address,
-    chainId: selectedChain.id,
-    token: tokenAddress,
-    enabled: isConnected,
-  });
+    const shortAddress = `${wallet.address.substring(0, 6)}...${wallet.address.substring(wallet.address.length - 4)}`;
 
-  useEffect(() => {
-    onConnect(address, chainId);
-  }, [address, chainId, onConnect]);
-
-  const isWrongNetwork = isConnected && chainId !== selectedChain.id;
-
-  const renderBalance = () => {
-    if (isWrongNetwork) return <span className="balance-info error">Wrong Network</span>;
-    if (!isNative && !tokenAddress) return <span className="balance-info">N/A on {selectedChain.name}</span>
-    if (isBalanceLoading) return <span className="balance-info">Loading...</span>;
-    if (isBalanceError || !balanceData) return <span className="balance-info error">Balance Error</span>;
     return (
-      <span className="balance-info">
-        {parseFloat(formatUnits(balanceData.value, balanceData.decimals)).toFixed(4)} {balanceData.symbol}
-      </span>
-    );
-  };
-
-  const hasSpecificInjectedWallet = connectors.some(
-    c => c.type === 'injected' && (c.name === 'MetaMask' || c.name === 'Coinbase Wallet')
-  );
-
-  const filteredConnectors = hasSpecificInjectedWallet
-    ? connectors.filter(c => c.name !== 'Injected')
-    : connectors;
-
-  const sortedConnectors = [...filteredConnectors].sort((a, b) => {
-    const preferredOrder = ['MetaMask', 'WalletConnect', 'Coinbase Wallet', 'Browser Wallet'];
-    const indexA = preferredOrder.indexOf(a.name);
-    const indexB = preferredOrder.indexOf(b.name);
-
-    if (indexA === -1) return 1;
-    if (indexB === -1) return -1;
-    return indexA - indexB;
-  });
-
-  if (isConnected) {
-    return (
-      <div className="wallet-info-connected">
-        <div className="wallet-address-balance">
+        <div className="wallet-connector">
             <p className="wallet-address">
-              <strong>{`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}</strong>
+                {shortAddress}
             </p>
-            <div className="balance-display">
-              {renderBalance()}
-            </div>
+            <button onClick={onDisconnect} className="disconnect-button">
+                Disconnect
+            </button>
         </div>
-        <div className="wallet-actions">
-              {isWrongNetwork && (
-                <button className="switch-button-compact" onClick={() => switchChain({ chainId: selectedChain.id })}>
-                  Switch Network
-                </button>
-              )}
-            <button onClick={() => disconnect()} className="disconnect-button-compact">Disconnect</button>
-        </div>
-      </div>
     );
-  }
-
-  return (
-    <div className="connect-container">
-      <h3>Connect a Wallet</h3>
-      <div className="wallet-text-list">
-            {sortedConnectors.map((connector) => (
-              <button
-                key={connector.uid}
-                onClick={() => connect({ connector })}
-                className="wallet-text-button"
-              >
-                {connector.name === 'Injected' ? 'Browser Wallet' : connector.name}
-              </button>
-            ))}
-      </div>
-        <hr className="wallet-separator" />
-        <a
-          href="https://metamask.io/download/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="create-wallet-button"
-        >
-          Create a new wallet
-        </a>
-      {error && <p className="error-message">{error.message}</p>}
-    </div>
-  );
 }
 
 export default WalletConnector;

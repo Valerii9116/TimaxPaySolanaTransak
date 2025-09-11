@@ -1,26 +1,25 @@
+// This Azure Function securely provides environment variables to the frontend.
+// It prevents your secret API keys from being exposed in the client-side code.
 module.exports = async function (context, req) {
-  context.log('GetConfig function processed a request.');
+    context.log('getConfig function processed a request.');
 
-  // These values should be set in your Azure Static Web App's "Configuration" (Environment Variables)
-  const walletConnectProjectId = process.env.WALLETCONNECT_PROJECT_ID;
-  const transakApiKey = process.env.TRANSAK_API_KEY;
-  const transakEnvironment = process.env.TRANSAK_ENVIRONMENT;
+    const config = {
+        walletConnectProjectId: process.env.WALLETCONNECT_PROJECT_ID,
+        transakApiKey: process.env.TRANSAK_API_KEY,
+        transakEnvironment: process.env.TRANSAK_ENVIRONMENT || 'STAGING' // Default to STAGING
+    };
 
-  if (!walletConnectProjectId || !transakApiKey || !transakEnvironment) {
-      context.res = {
-          status: 500,
-          body: "Server configuration is incomplete. Required API keys are missing."
-      };
-      return;
-  }
+    // Essential check to ensure the backend is configured correctly.
+    if (!config.walletConnectProjectId || !config.transakApiKey) {
+        context.res = {
+            status: 500,
+            body: { error: "Server configuration is incomplete. Required API keys (WalletConnect, Transak) are missing from environment variables." }
+        };
+        return;
+    }
 
-  context.res = {
-      // status: 200, /* Defaults to 200 */
-      body: {
-          walletConnectProjectId,
-          transakApiKey,
-          transakEnvironment
-      }
-  };
-}
-
+    context.res = {
+        // Successfully return the configuration
+        body: config
+    };
+};

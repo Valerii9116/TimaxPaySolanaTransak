@@ -1,66 +1,65 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import './index.css';
 import App from './App.jsx';
-import reportWebVitals from './reportWebVitals.js';
-import WalletAdapters from './WalletAdapters.jsx';
+import Web3Provider from './Web3Provider.jsx';
+import './index.css';
 
-// Required for Solana Wallet UI styling
-import '@solana/wallet-adapter-react-ui/styles.css';
-
-// Global error handler for debugging wallet connection issues
-// This helps catch silent errors from wallet libraries.
-window.addEventListener('unhandledrejection', event => {
-  console.error('Unhandled Promise Rejection:', event.reason);
-});
-
-const StatusDisplay = ({ message }) => (
-    <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        fontFamily: 'sans-serif',
-        padding: '2rem',
-        color: 'white',
-        textAlign: 'center'
-    }}>
-        {message}
+// A component to show while fetching essential configuration from the backend.
+const StatusDisplay = ({ message, isError = false }) => (
+    <div className="loading-container">
+        <div className="loading-content">
+            {isError ? (
+                <>
+                    <h2 style={{ color: '#EF4444' }}>Initialization Error</h2>
+                    <p>{message}</p>
+                </>
+            ) : (
+                <>
+                    <div className="loading-spinner"></div>
+                    <p>{message}</p>
+                </>
+            )}
+        </div>
     </div>
 );
 
+// This function safely initializes the application.
 const initializeApp = async () => {
     const container = document.getElementById('root');
-    if (!container) return;
+    if (!container) {
+        console.error("Fatal Error: Root container not found.");
+        return;
+    }
     const root = createRoot(container);
+
+    // Render a loading state immediately.
     root.render(<StatusDisplay message="Initializing Terminal..." />);
 
     try {
+        // Fetch API keys from the secure backend endpoint.
         const response = await fetch('/api/getConfig');
         if (!response.ok) {
-            const errorBody = await response.text();
-            throw new Error(`API Error: ${response.statusText} (Status: ${response.status}). Response: ${errorBody}`);
-        }
-        
-        const serverConfig = await response.json();
-        if (!serverConfig.walletConnectProjectId) {
-            throw new Error('Crucial Error: WalletConnect Project ID is missing from server config. EVM wallets cannot function.');
+            const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response.' }));
+            throw new Error(`API connection failed (Status: ${response.status}). ${errorData.error || 'Ensure the API is running.'}`);
         }
 
+        const serverConfig = await response.json();
+        if (!serverConfig.walletConnectProjectId || !serverConfig.transakApiKey) {
+            throw new Error('Server configuration is incomplete. Check backend environment variables.');
+        }
+
+        // Once config is ready, render the main application.
         root.render(
             <React.StrictMode>
-                <WalletAdapters serverConfig={serverConfig}>
-                    <App transakApiKey={serverConfig.transakApiKey} transakEnvironment={serverConfig.transakEnvironment} />
-                </WalletAdapters>
+                <Web3Provider serverConfig={serverConfig}>
+                    <App serverConfig={serverConfig} />
+                </Web3Provider>
             </React.StrictMode>
         );
-
     } catch (error) {
-        console.error("Fatal Initialization Failed:", error);
-        root.render(<StatusDisplay message={`Error: ${error.message}. Please verify API server is running and proxied correctly.`} />);
+        console.error("Fatal Initialization Error:", error);
+        root.render(<StatusDisplay message={error.message} isError={true} />);
     }
 };
 
 initializeApp();
-reportWebVitals();
-

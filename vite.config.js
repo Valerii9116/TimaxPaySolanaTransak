@@ -6,38 +6,21 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 export default defineConfig({
   plugins: [
     react(),
-    // This plugin is the most critical part for wallet connectivity.
-    // It provides shims for Node.js core modules and globals like
-    // `Buffer` and `process`, which are heavily used by wallet libraries.
-    // An incorrect configuration here is the #1 cause of silent connection failures.
+    // This plugin is essential for wallet connections to work correctly
     nodePolyfills({
-      globals: {
-        Buffer: true,
-        global: true,
-        process: true,
-      },
-      protocolImports: true,
+      global: true,
+      buffer: true,
+      process: true,
     }),
   ],
   server: {
+    // Proxy API requests to the Azure Functions backend during development
     proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:7071',
-        changeOrigin: true,
-        secure: false,
-      },
+      '/api': 'http://localhost:7071',
     },
   },
-  // Ensure that dependencies that use Node.js globals are correctly processed.
-  optimizeDeps: {
-    esbuildOptions: {
-      define: {
-        global: 'globalThis',
-      },
-    },
-  },
-  build: {
-    outDir: 'dist',
+  define: {
+    // Necessary polyfill for some wallet libraries
+    'process.env': {}
   }
 });
-

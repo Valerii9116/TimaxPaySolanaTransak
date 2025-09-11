@@ -1,18 +1,21 @@
 {
-  "navigationFallback": {
-    "rewrite": "/index.html"
-  },
   "routes": [
     {
       "route": "/api/*",
       "rewrite": "/api/*"
     }
   ],
-  "globalHeaders": {
-    "Content-Security-Policy": "default-src 'self' https: data: wss:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.walletconnect.com; style-src 'self' 'unsafe-inline'; connect-src *; img-src 'self' data: https:;"
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/static/media/*.{png,jpg,svg}", "/static/css/*.css"]
+  },
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 200
+    }
   },
   "platform": {
     "apiRuntime": "node:18"
   }
 }
-
