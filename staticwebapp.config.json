@@ -2,13 +2,22 @@
   "routes": [
     {
       "route": "/api/*",
-      "methods": ["GET", "POST"],
+      "methods": [
+        "GET",
+        "POST"
+      ],
       "rewrite": "/api/*"
     }
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/wallets/*", "*.png", "*.jpg", "*.svg"]
+    "exclude": [
+      "/assets/*",
+      "/wallets/*",
+      "*.png",
+      "*.jpg",
+      "*.svg"
+    ]
   },
   "responseOverrides": {
     "404": {
