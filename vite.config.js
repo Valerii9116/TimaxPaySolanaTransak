@@ -6,21 +6,29 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 export default defineConfig({
   plugins: [
     react(),
-    // This plugin is essential for wallet connections to work correctly
     nodePolyfills({
+      // To exclude specific polyfills, add them to this list.
+      // Ex: exclude: ['fs'],
+      // Whether to polyfill `global`.
       global: true,
-      buffer: true,
+      // Whether to polyfill `process`.
       process: true,
+      // Whether to polyfill `Buffer`.
+      buffer: true,
     }),
   ],
   server: {
-    // Proxy API requests to the Azure Functions backend during development
     proxy: {
-      '/api': 'http://localhost:7071',
+      '/api': {
+        target: 'http://localhost:7071',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
   define: {
-    // Necessary polyfill for some wallet libraries
-    'process.env': {}
-  }
+    // By default, Vite doesn't include shims for NodeJS/CJS globals.
+    // This is needed for some packages that still rely on them.
+    'global': 'globalThis',
+  },
 });

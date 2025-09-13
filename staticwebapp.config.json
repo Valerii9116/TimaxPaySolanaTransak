@@ -7,15 +7,12 @@
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/static/media/*.{png,jpg,svg}", "/static/css/*.css"]
+    "exclude": ["/assets/*.{js,css,svg,png,jpg,gif}", "/vite.svg"]
   },
   "responseOverrides": {
     "404": {
       "rewrite": "/index.html",
       "statusCode": 200
     }
-  },
-  "platform": {
-    "apiRuntime": "node:18"
   }
 }

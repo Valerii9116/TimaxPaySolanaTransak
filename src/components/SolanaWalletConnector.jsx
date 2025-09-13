@@ -1,66 +1,61 @@
-import React, { useState, useEffect } from 'react';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
-import { ASSET_ADDRESSES } from '../config.js';
+import React from 'react';
+import PropTypes from 'prop-types';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import { useTerminal } from '../providers/TerminalProvider';
+import { useWalletBalance } from '../hooks/useWalletBalance';
+import ConnectedWalletInfo from './ConnectedWalletInfo';
+import { Sparkles } from 'lucide-react';
 
-function SolanaWalletConnector({ onDisconnect, selectedAsset }) {
-    const { connection } = useConnection();
-    const { publicKey, connected } = useWallet();
-    const [balance, setBalance] = useState({ amount: 0, symbol: 'SOL' });
+const SolanaWalletConnector = ({ onDisconnect }) => {
+  const { publicKey, connected, disconnect, connecting } = useWallet();
+  const { setVisible } = useWalletModal();
+  const { selectedChain, selectedAsset } = useTerminal();
+  
+  const { balance, isLoading: isBalanceLoading } = useWalletBalance(null, publicKey, selectedChain, selectedAsset);
 
-    useEffect(() => {
-        if (!connected || !publicKey || !connection) {
-            setBalance({ amount: 0, symbol: 'SOL' });
-            return;
-        }
+  const handleDisconnect = () => {
+    disconnect();
+    onDisconnect();
+  };
 
-        const fetchBalance = async () => {
-            try {
-                const assetInfo = ASSET_ADDRESSES.solana[selectedAsset];
-
-                if (assetInfo && assetInfo !== 'NATIVE') {
-                    // This is a token, so we need to find the associated token account balance
-                    const mint = new PublicKey(assetInfo);
-                    // A full implementation would go here, but for this example, we will just show SOL balance
-                    // as fetching token balances requires more complex logic.
-                    const lamports = await connection.getBalance(publicKey);
-                    setBalance({ amount: lamports / LAMPORTS_PER_SOL, symbol: 'SOL' });
-                } else {
-                    // This is the native SOL balance
-                    const lamports = await connection.getBalance(publicKey);
-                    setBalance({ amount: lamports / LAMPORTS_PER_SOL, symbol: 'SOL' });
-                }
-            } catch (error) {
-                console.error("Failed to fetch Solana balance:", error);
-                setBalance({ amount: 0, symbol: 'SOL' });
-            }
-        };
-
-        fetchBalance();
-    }, [publicKey, connected, connection, selectedAsset]);
-
-    if (!connected || !publicKey) {
-        return <div className="wallet-info-connected">Connecting Solana wallet...</div>;
-    }
-
+  if (connecting) {
     return (
-        <div className="wallet-info-connected">
-            <div className="wallet-address-balance">
-                <p className="wallet-address">
-                    <strong>{`${publicKey.toBase58().substring(0, 6)}...${publicKey.toBase58().substring(publicKey.toBase58().length - 4)}`}</strong>
-                </p>
-                <div className="balance-display">
-                    {balance.amount.toFixed(4)} {balance.symbol}
-                </div>
-            </div>
-            <div className="wallet-actions">
-                <button onClick={onDisconnect} className="disconnect-button-compact">
-                    Disconnect
-                </button>
-            </div>
-        </div>
+      <div className="step-card">
+        <p style={{ textAlign: 'center' }}>Connecting...</p>
+      </div>
     );
-}
+  }
+
+  if (connected && publicKey) {
+    return (
+      <div className="wallet-info-card">
+        <ConnectedWalletInfo
+          address={publicKey.toBase58()}
+          onDisconnect={handleDisconnect}
+          networkStatus="ok" // Solana has only one network in this app
+          balance={balance}
+          isBalanceLoading={isBalanceLoading}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="step-card wallet-selection-card">
+      <div className="wallet-buttons-container">
+        <button className="wallet-button solana" onClick={() => setVisible(true)}>
+          <Sparkles size={22} />
+          <span>Connect Solana Wallet</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+SolanaWalletConnector.propTypes = {
+  onDisconnect: PropTypes.func.isRequired,
+};
 
 export default SolanaWalletConnector;
 

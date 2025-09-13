@@ -1,9 +1,11 @@
 {
   "name": "timaxpay-api",
   "version": "1.0.0",
-  "description": "API functions for TimaxPay Terminal",
+  "description": "Azure Functions API for TimaxPay Terminal",
+  "scripts": {
+    "start": "func start"
+  },
   "dependencies": {
     "axios": "^1.7.2"
   }
 }
-

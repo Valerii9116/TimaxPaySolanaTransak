@@ -5,8 +5,9 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "methods": ["get"],
-      "route": "getConfig"
+      "methods": [
+        "get"
+      ]
     },
     {
       "type": "http",

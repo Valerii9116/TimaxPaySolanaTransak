@@ -1,11 +1,11 @@
 {
-  "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "",
-    "FUNCTIONS_WORKER_RUNTIME": "node",
-    "TRANSAK_API_KEY": "0fedc8c1-38db-455e-8792-8e8174bead31",
-    "TRANSAK_API_SECRET": "Cho/6EahpmWqV0I3xqPKYw==",
-    "WALLETCONNECT_PROJECT_ID": "dc14d146c0227704322ac9a46aaed7cd",
-    "TRANSAK_ENVIRONMENT": "STAGING"
+    "IsEncrypted": false,
+    "Values": {
+      "AzureWebJobsStorage": "",
+      "FUNCTIONS_WORKER_RUNTIME": "node",
+      "WALLETCONNECT_PROJECT_ID": "dc14d146c0227704322ac9a46aaed7cd",
+      "TRANSAK_API_KEY": "0fedc8c1-38db-455e-8792-8e8174bead31",
+      "TRANSAK_API_SECRET": "Cho/6EahpmWqV0I3xqPKYw==",
+      "TRANSAK_ENVIRONMENT": "STAGING"
+    }
   }
-}
