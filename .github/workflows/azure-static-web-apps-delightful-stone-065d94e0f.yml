@@ -30,7 +30,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           # --- CORRECTED CONFIGURATION FOR A VITE PROJECT ---
-          app_location: "/" # The root of your repository where package.json is located
+          app_location: "/" # The root of your repository where you package.json is located
           api_location: "api" # The location of your Azure Functions
           output_location: "dist" # The build output folder for Vite projects
         env:
