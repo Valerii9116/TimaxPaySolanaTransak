@@ -11,7 +11,6 @@ on:
 
 jobs:
   build_and_deploy_job:
-    # FIX: The entire condition must be a single expression
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
@@ -20,7 +19,7 @@ jobs:
         with:
           submodules: true
       
-      # FIX: This single action now handles both building the Vite app and deploying it.
+      # This single action now handles both building the Vite app and deploying it.
       # This is the modern and recommended approach.
       - name: Build And Deploy
         id: builddeploy
@@ -30,15 +29,14 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           # --- CORRECTED CONFIGURATION FOR A VITE PROJECT ---
-          app_location: "/" # The root of your repository where you package.json is located
-          api_location: "api" # The location of your Azure Functions
+          app_location: "/" # The root of your repository where package.json is located
+          api_location: "/api" # The location of your Azure Functions
           output_location: "dist" # The build output folder for Vite projects
         env:
           # This line prevents build warnings from failing the deployment
           CI: false
 
   close_pull_request_job:
-    # FIX: The entire condition must be a single expression
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
     name: Close Pull Request Job
