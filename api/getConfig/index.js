@@ -8,17 +8,16 @@ module.exports = async function (context, req) {
         transakEnvironment: process.env.TRANSAK_ENVIRONMENT || 'STAGING',
       };
   
-      // Check if any required keys are missing
       if (!config.walletConnectProjectId || !config.transakApiKey) {
         const missingKeys = Object.entries(config)
-          .filter(([key, value]) => !value)
+          .filter(([, value]) => !value)
           .map(([key]) => key);
         
-        context.log.error(`Server configuration error. Missing keys: ${missingKeys.join(', ')}`);
+        context.log.error(`Server config error. Missing: ${missingKeys.join(', ')}`);
         
         context.res = {
           status: 500,
-          body: { error: `Server configuration error. The following required API keys are missing on the server: ${missingKeys.join(', ')}` }
+          body: { error: `Server configuration error. The following required keys are missing on the server: ${missingKeys.join(', ')}` }
         };
         return;
       }
@@ -35,4 +34,5 @@ module.exports = async function (context, req) {
       };
     }
   };
+  
   

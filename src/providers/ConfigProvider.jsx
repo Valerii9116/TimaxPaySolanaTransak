@@ -20,9 +20,14 @@ export const ConfigProvider = ({ children }) => {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
+        // --- START OF DEFINITIVE FIX ---
+        // Always use a relative path for the API call in an Azure Static Web App.
+        // This ensures the frontend correctly communicates with its linked backend.
         const response = await axios.get('/api/getConfig');
-        if (response.data && response.data.data) {
-          setConfig(response.data.data);
+        // --- END OF DEFINITIVE FIX ---
+
+        if (response.data) {
+          setConfig(response.data);
         } else {
           throw new Error('Invalid config structure received from the server.');
         }
@@ -66,3 +71,4 @@ export const ConfigProvider = ({ children }) => {
 ConfigProvider.propTypes = {
   children: PropTypes.node.isRequired,
 };
+
