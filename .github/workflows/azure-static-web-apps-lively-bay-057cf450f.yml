@@ -32,7 +32,7 @@ jobs:
           api_location: "api" # Api's location (relative to repo root)
           output_location: "dist" # The output folder of your build tool
           app_build_command: "npm run build --prefix ."
-          api_build_command: "npm run build --prefix api"
+          api_build_command: "npm install --prefix api && npm run build --prefix api"
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
