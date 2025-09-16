@@ -20,7 +20,7 @@ yarn-error.log*
 .env.production.local
 
 # IDE config
-.vscode/
+
 .idea/
 *.swp
 *.swo

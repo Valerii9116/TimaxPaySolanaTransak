@@ -16,8 +16,10 @@ import { EVM_CHAINS } from '../config';
 
 const queryClient = new QueryClient();
 
-// --- START OF DEFINITIVE FIX: This new architecture ensures stable initialization ---
-
+// This architecture ensures stable initialization for both Wagmi and Solana providers.
+// The Wagmi config is created conditionally based on the project ID.
+// The Web3Modal is created only once, and a loading state prevents child components
+// from rendering before everything is ready.
 const createWagmiConfig = (projectId) => createConfig({
   chains: [...EVM_CHAINS],
   projectId,
@@ -35,11 +37,13 @@ export const WalletProviders = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const isModalCreated = useRef(false);
 
+  // Memoize the wagmiConfig to prevent unnecessary re-creations
   const wagmiConfig = useMemo(() => {
     if (!walletConnectProjectId) return null;
     return createWagmiConfig(walletConnectProjectId);
   }, [walletConnectProjectId]);
 
+  // Create the Web3Modal instance only once.
   useEffect(() => {
     if (wagmiConfig && !isModalCreated.current) {
       createWeb3Modal({
@@ -86,7 +90,6 @@ export const WalletProviders = ({ children }) => {
         </div>
     );
   }
-  // --- END OF DEFINITIVE FIX ---
 
   return (
     <WagmiProvider config={wagmiConfig}>
@@ -104,4 +107,3 @@ export const WalletProviders = ({ children }) => {
 WalletProviders.propTypes = {
     children: PropTypes.node.isRequired,
 };
-

@@ -11,9 +11,9 @@ function App() {
 
   const isWalletConnected = isEvmConnected || isSolanaConnected;
   
-  // --- START OF FIX: Corrected the typo from 'toBase5a' to 'toBase58' ---
+  // FIX: Corrected the typo from 'toBase5a' to 'toBase58'
   const walletIdentifier = evmAddress || (solanaPublicKey ? solanaPublicKey.toBase58() : undefined);
-  // --- END OF FIX ---
+  // END OF FIX
 
   return (
     // The key prop ensures the TerminalProvider and its state resets when the wallet connects or disconnects.
@@ -38,4 +38,3 @@ function App() {
 }
 
 export default App;
-
