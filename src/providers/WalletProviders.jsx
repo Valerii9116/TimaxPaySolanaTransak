@@ -2,11 +2,8 @@ import React, { useMemo, useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
-import { SolanaMobileWalletAdapter, createDefaultAuthorizationResultCache, createDefaultWalletNotFoundHandler } from '@solana-mobile/wallet-adapter-mobile';
 import { clusterApiUrl } from '@solana/web3.js';
 import '@solana/wallet-adapter-react-ui/styles.css';
-
 import { createWeb3Modal } from '@web3modal/wagmi/react';
 import { WagmiProvider, createConfig, http } from 'wagmi';
 import { injected, walletConnect, coinbaseWallet } from 'wagmi/connectors';
@@ -14,20 +11,36 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useConfig } from './ConfigProvider';
 import { EVM_CHAINS } from '../config';
 
-const queryClient = new QueryClient();
+// Create a single QueryClient instance
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      retryDelay: 1000,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
 
-// This architecture ensures stable initialization for both Wagmi and Solana providers.
-// The Wagmi config is created conditionally based on the project ID.
-// The Web3Modal is created only once, and a loading state prevents child components
-// from rendering before everything is ready.
 const createWagmiConfig = (projectId) => createConfig({
   chains: [...EVM_CHAINS],
   projectId,
   transports: EVM_CHAINS.reduce((acc, chain) => ({ ...acc, [chain.id]: http() }), {}),
   connectors: [
-      walletConnect({ projectId }),
-      injected({ shimDisconnect: true }),
-      coinbaseWallet({ appName: 'TimaxPay Terminal', darkMode: true })
+    walletConnect({ 
+      projectId,
+      metadata: {
+        name: 'TimaxPay Terminal',
+        description: 'Accept fiat, receive crypto',
+        url: typeof window !== 'undefined' ? window.location.origin : 'https://localhost:5173',
+        icons: ['https://walletconnect.com/walletconnect-logo.png']
+      }
+    }),
+    injected({ shimDisconnect: true }),
+    coinbaseWallet({ 
+      appName: 'TimaxPay Terminal',
+      darkMode: true 
+    })
   ],
   ssr: false,
 });
@@ -43,60 +56,105 @@ export const WalletProviders = ({ children }) => {
     return createWagmiConfig(walletConnectProjectId);
   }, [walletConnectProjectId]);
 
-  // Create the Web3Modal instance only once.
+  // Create the Web3Modal instance only once
   useEffect(() => {
-    if (wagmiConfig && !isModalCreated.current) {
-      createWeb3Modal({
-        wagmiConfig,
-        projectId: walletConnectProjectId,
-        enableAnalytics: true,
-        themeMode: 'dark',
-        themeVariables: {
-          '--w3m-color-mix': '#1e1e1e',
-          '--w3m-accent': '#3498db',
-        }
-      });
-      isModalCreated.current = true;
-      // Once the modal is created, we can allow the rest of the app to render.
-      setIsInitialized(true);
+    if (wagmiConfig && walletConnectProjectId && !isModalCreated.current) {
+      try {
+        createWeb3Modal({
+          wagmiConfig,
+          projectId: walletConnectProjectId,
+          enableAnalytics: false, // Disabled to avoid tracking issues
+          themeMode: 'dark',
+          themeVariables: {
+            '--w3m-color-mix': '#1e1e1e',
+            '--w3m-accent': '#3498db',
+          }
+        });
+        isModalCreated.current = true;
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Failed to create Web3Modal:', error);
+        setIsInitialized(true); // Still proceed even if modal creation fails
+      }
     }
   }, [wagmiConfig, walletConnectProjectId]);
-  
+
   const solanaNetwork = 'mainnet-beta';
-  const endpoint = useMemo(() => clusterApiUrl(solanaNetwork), []);
+  
+  // Use a reliable RPC endpoint
+  const endpoint = useMemo(() => {
+    return process.env.REACT_APP_SOLANA_RPC_URL || clusterApiUrl(solanaNetwork);
+  }, [solanaNetwork]);
 
-  const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
-      new SolanaMobileWalletAdapter({
-          appIdentity: { name: 'TimaxPay Terminal' },
-          authorizationResultCache: createDefaultAuthorizationResultCache(),
-          onWalletNotFound: createDefaultWalletNotFoundHandler(),
-      }),
-    ],
-    []
-  );
+  // IMPORTANT: Empty wallets array to rely on Standard Wallet detection
+  // Modern wallets like Phantom and Solflare auto-register via Wallet Standard
+  const wallets = useMemo(() => {
+    return []; // Let Standard Wallets handle everything
+  }, []);
 
-  // IMPORTANT: Render a loading state until all wallet providers are fully initialized.
-  // This prevents child components from rendering too early and causing the crash.
+  // Improved error handling
+  const onError = (error) => {
+    console.error('Solana wallet error:', error);
+    
+    // Handle specific error types gracefully
+    if (error?.message?.includes('User rejected')) {
+      console.log('User rejected wallet connection');
+      return;
+    }
+    if (error?.message?.includes('Wallet not found')) {
+      console.log('Wallet extension not found');
+      return;
+    }
+    if (error?.message?.includes('Failed to connect')) {
+      console.log('Failed to connect to wallet');
+      return;
+    }
+    
+    // Don't throw for other errors, just log them
+    console.error('Wallet error details:', error);
+  };
+
+  // Wait for initialization
   if (!isInitialized) {
     return (
-        <div className="loading-container">
-            <div className="loading-content">
-                <div className="loading-spinner"></div>
-                <p>Initializing Wallets...</p>
-            </div>
+      <div className="loading-container">
+        <div className="loading-content">
+          <div className="loading-spinner"></div>
+          <p>Initializing Wallets...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (!wagmiConfig) {
+    return (
+      <div className="app-container">
+        <div className="error-message main-status">
+          Failed to initialize wallet configuration. Please check your settings.
+        </div>
+      </div>
     );
   }
 
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <ConnectionProvider endpoint={endpoint}>
-          <WalletProvider wallets={wallets} autoConnect={false}>
-            <WalletModalProvider>{children}</WalletModalProvider>
+        <ConnectionProvider
+          endpoint={endpoint}
+          config={{ 
+            commitment: 'confirmed',
+            preflightCommitment: 'processed',
+            wsEndpoint: undefined // Disable WebSocket to avoid connection issues
+          }}
+        >
+          <WalletProvider
+            wallets={wallets}
+            onError={onError}
+            autoConnect={false}
+          >
+            <WalletModalProvider>
+              {children}
+            </WalletModalProvider>
           </WalletProvider>
         </ConnectionProvider>
       </QueryClientProvider>
@@ -105,5 +163,5 @@ export const WalletProviders = ({ children }) => {
 };
 
 WalletProviders.propTypes = {
-    children: PropTypes.node.isRequired,
+  children: PropTypes.node.isRequired,
 };

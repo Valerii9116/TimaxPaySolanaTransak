@@ -1,21 +1,49 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/static/css/*", "/static/js/*", "/static/media/*", "*.{png,jpg,gif,ico,svg}"]
+    "exclude": [
+      "/static/css/*", 
+      "/static/js/*", 
+      "/static/media/*", 
+      "/assets/*",
+      "*.{png,jpg,gif,ico,svg,woff,woff2,ttf,eot}"
+    ]
   },
   "routes": [
     {
       "route": "/api/*",
-      "methods": ["GET", "POST"],
+      "methods": ["GET", "POST", "OPTIONS"],
       "headers": {
-        "Access-Control-Allow-Origin": "*"
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, transak-api-key, secret",
+        "Access-Control-Max-Age": "86400"
       }
     }
   ],
   "responseOverrides": {
+    "401": {
+      "rewrite": "/index.html",
+      "statusCode": 200
+    },
+    "403": {
+      "rewrite": "/index.html", 
+      "statusCode": 200
+    },
     "404": {
       "rewrite": "/index.html",
       "statusCode": 200
     }
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    ".js": "text/javascript",
+    ".css": "text/css"
   }
 }
