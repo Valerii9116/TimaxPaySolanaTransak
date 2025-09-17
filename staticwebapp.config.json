@@ -1,25 +1,21 @@
 {
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/static/css/*", "/static/js/*", "/static/media/*", "*.{png,jpg,gif,ico,svg}"]
+  },
   "routes": [
     {
       "route": "/api/*",
-      "rewrite": "/api/{*}.js",
-      "allowedRoles": ["anonymous"]
+      "methods": ["GET", "POST"],
+      "headers": {
+        "Access-Control-Allow-Origin": "*"
+      }
     }
   ],
-  "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": [
-      "/assets/*",
-      "*.{png,jpg,svg}"
-    ]
-  },
   "responseOverrides": {
     "404": {
       "rewrite": "/index.html",
       "statusCode": 200
     }
-  },
-  "platform": {
-    "apiRuntime": "node:18"
   }
 }
