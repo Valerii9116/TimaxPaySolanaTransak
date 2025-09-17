@@ -23,16 +23,18 @@ export const ConfigProvider = ({ children }) => {
         const response = await axios.get('/api/getConfig');
         if (response.data) {
           setConfig(response.data);
-          setError(null); // Clear any previous errors
         } else {
           throw new Error('Invalid config structure received from the server.');
         }
       } catch (err) {
         console.error('Failed to fetch application config:', err);
-        const errorMsg = err.response && err.response.status
-          ? `API Error: ${err.response.status} - ${err.response.data?.error || err.message}`
-          : `Network Error: ${err.message}`;
-        setError(`Could not load application configuration. Please ensure the API is running and configured correctly. Details: ${errorMsg}`);
+        // Log the detailed error from the API call
+        if (err.response) {
+            setError(`API Error: ${err.response.status} - ${err.response.data.error || err.message}`);
+            console.error(`API Error Details: Status=${err.response.status}, Data=${JSON.stringify(err.response.data)}`);
+        } else {
+            setError('Could not load application configuration. Please ensure the API is running and configured correctly.');
+        }
       } finally {
         setLoading(false);
       }

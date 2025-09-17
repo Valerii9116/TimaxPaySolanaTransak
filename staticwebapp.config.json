@@ -1,1 +1,25 @@
-[Immersive content redacted for brevity.]
+{
+  "routes": [
+    {
+      "route": "/api/*",
+      "rewrite": "/api/index.js",
+      "allowedRoles": ["anonymous"]
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": [
+      "/assets/*",
+      "*.{png,jpg,svg}"
+    ]
+  },
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 200
+    }
+  },
+  "platform": {
+    "apiRuntime": "node:18"
+  }
+}
