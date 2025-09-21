@@ -16,10 +16,6 @@ import { EVM_CHAINS } from '../config';
 
 const queryClient = new QueryClient();
 
-// This architecture ensures stable initialization for both Wagmi and Solana providers.
-// The Wagmi config is created conditionally based on the project ID.
-// The Web3Modal is created only once, and a loading state prevents child components
-// from rendering before everything is ready.
 const createWagmiConfig = (projectId) => createConfig({
   chains: [...EVM_CHAINS],
   projectId,
@@ -35,6 +31,7 @@ const createWagmiConfig = (projectId) => createConfig({
 export const WalletProviders = ({ children }) => {
   const { walletConnectProjectId } = useConfig();
   const [isInitialized, setIsInitialized] = useState(false);
+  const [solanaInitialized, setSolanaInitialized] = useState(false);
   const isModalCreated = useRef(false);
 
   // Memoize the wagmiConfig to prevent unnecessary re-creations
@@ -57,30 +54,80 @@ export const WalletProviders = ({ children }) => {
         }
       });
       isModalCreated.current = true;
-      // Once the modal is created, we can allow the rest of the app to render.
       setIsInitialized(true);
     }
   }, [wagmiConfig, walletConnectProjectId]);
   
   const solanaNetwork = 'mainnet-beta';
-  const endpoint = useMemo(() => clusterApiUrl(solanaNetwork), []);
+  
+  // Use a more reliable RPC endpoint
+  const endpoint = useMemo(() => {
+    // You might want to use a custom RPC endpoint instead of the default
+    // For better reliability, consider using: 'https://api.mainnet-beta.solana.com'
+    // or a premium RPC provider like QuickNode, Helius, etc.
+    return process.env.REACT_APP_SOLANA_RPC_URL || clusterApiUrl(solanaNetwork);
+  }, [solanaNetwork]);
 
   const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
-      new SolanaMobileWalletAdapter({
-          appIdentity: { name: 'TimaxPay Terminal' },
-          authorizationResultCache: createDefaultAuthorizationResultCache(),
-          onWalletNotFound: createDefaultWalletNotFoundHandler(),
-      }),
-    ],
-    []
+    () => {
+      const walletList = [
+        new PhantomWalletAdapter(),
+        new SolflareWalletAdapter({ network: solanaNetwork }),
+      ];
+
+      // Only add mobile adapter if we're in a mobile environment
+      if (typeof window !== 'undefined' && 
+          (window.navigator?.userAgent?.includes('Mobile') || 
+           window.navigator?.userAgent?.includes('Android') || 
+           window.navigator?.userAgent?.includes('iPhone'))) {
+        walletList.push(
+          new SolanaMobileWalletAdapter({
+            appIdentity: { 
+              name: 'TimaxPay Terminal',
+              uri: window.location.origin,
+              icon: `${window.location.origin}/favicon.ico`
+            },
+            authorizationResultCache: createDefaultAuthorizationResultCache(),
+            onWalletNotFound: createDefaultWalletNotFoundHandler(),
+          })
+        );
+      }
+
+      return walletList;
+    },
+    [solanaNetwork]
   );
 
-  // IMPORTANT: Render a loading state until all wallet providers are fully initialized.
-  // This prevents child components from rendering too early and causing the crash.
-  if (!isInitialized) {
+  // Handle Solana wallet errors
+  const onError = (error) => {
+    console.error('Solana wallet error:', error);
+    
+    // Handle specific error types
+    if (error?.message?.includes('User rejected')) {
+      console.log('User rejected wallet connection');
+      return;
+    }
+    
+    if (error?.message?.includes('Wallet not found')) {
+      console.log('Wallet extension not found');
+      return;
+    }
+    
+    // Log other errors for debugging
+    console.error('Unexpected wallet error:', error);
+  };
+
+  // Add a small delay to ensure Solana providers are ready
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSolanaInitialized(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Wait for both EVM and Solana initialization
+  if (!isInitialized || !solanaInitialized) {
     return (
         <div className="loading-container">
             <div className="loading-content">
@@ -94,9 +141,19 @@ export const WalletProviders = ({ children }) => {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <ConnectionProvider endpoint={endpoint}>
-          <WalletProvider wallets={wallets} autoConnect={false}>
-            <WalletModalProvider>{children}</WalletModalProvider>
+        <ConnectionProvider 
+          endpoint={endpoint}
+          config={{ commitment: 'processed' }}
+        >
+          <WalletProvider 
+            wallets={wallets} 
+            onError={onError}
+            autoConnect={false}
+            localStorageKey="solana-wallet"
+          >
+            <WalletModalProvider>
+              {children}
+            </WalletModalProvider>
           </WalletProvider>
         </ConnectionProvider>
       </QueryClientProvider>
