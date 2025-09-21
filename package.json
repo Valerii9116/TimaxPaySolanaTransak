@@ -7,18 +7,20 @@
     "node": ">=20.18.0"
   },
   "scripts": {
-    "start-app": "vite",
-    "start-api": "cd api && func start",
+    "start-app": "vite --host",
+    "start-api": "cd api && func start --port 7072",
     "start": "concurrently \"npm:start-api\" \"npm:start-app\"",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview --host",
+    "clean": "rm -rf node_modules/.vite dist",
+    "dev": "npm run start"
   },
   "dependencies": {
     "@solana/spl-token": "^0.4.8",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/wallet-adapter-react-ui": "^0.9.35",
-    "@solana/wallet-adapter-wallets": "^0.19.32",
+    "@solana/wallet-adapter-wallets": "^0.19.37",
     "@solana/web3.js": "^1.95.0",
     "@tanstack/react-query": "^5.51.15",
     "@transak/transak-sdk": "^1.2.0",
